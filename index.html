@@ -223,6 +223,54 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .promo-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
 .promo-body .row-btns{margin-top:auto;padding-top:8px}
 .promo.off{opacity:.62}
+.ficha{border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:10px;background:#fff;display:flex;flex-direction:column;gap:6px}
+.ficha-h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ficha-f{background:var(--brand-l);border-radius:10px;padding:8px 10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86rem}
+.ficha-f span{display:block;font-family:Inter,system-ui,sans-serif;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--brand-d);margin-bottom:2px}
+.ficha-fotos{display:flex;gap:10px}.ficha-fotos figure{margin:0;flex:1;max-width:160px}
+.ficha-fotos img,.ficha-prev img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:10px;background:var(--bg);display:block;cursor:zoom-in;opacity:.35}
+.ficha-fotos img.ok,.ficha-prev img.ok{opacity:1}
+.ficha-fotos figcaption{font-size:.72rem;color:var(--muted);text-align:center;margin-top:3px}
+.ficha-sub{display:flex;gap:14px;flex-wrap:wrap}.ficha-up{display:flex;flex-direction:column;gap:6px;align-items:flex-start;width:140px}
+.ficha-prev{width:140px;aspect-ratio:3/4;border:1px dashed var(--border);border-radius:12px;display:grid;place-items:center;overflow:hidden;color:var(--muted);font-size:.78rem}
+.ficha-prev img{height:100%}
+.foto-full{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;display:grid;place-items:center;padding:16px;cursor:zoom-out}
+.foto-full img{max-width:100%;max-height:100%;border-radius:10px}
+.tl-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}.tl-item:last-child{border:0}
+.tl-ico{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--brand-l);flex:none;font-size:1rem}
+.tl-item .grow{min-width:0}
+.cum-row{display:flex;align-items:center;gap:8px}.cum-row .grow{min-width:0}
+.web-tag{font-size:.7rem;background:#e7f1ff;color:#2457a6;border-radius:6px;padding:1px 6px;margin-left:4px;font-weight:600;white-space:nowrap}
+.rv-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.rv-chips button{border:1px solid var(--border);background:#fff;border-radius:999px;padding:8px 14px;cursor:pointer;font:inherit;color:inherit}
+.rv-chips button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.rv-link{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+body.reserva{background:radial-gradient(circle at 20% 0,var(--brand-l) 0,transparent 50%),var(--bg);min-height:100vh}
+#rv{max-width:560px;margin:0 auto;padding:18px 14px 40px}
+.rv-card{background:#fff;border-radius:22px;padding:24px 18px;box-shadow:0 20px 60px rgba(110,40,75,.12)}
+.rv-head{text-align:center;margin-bottom:8px}.rv-head h1{font-family:var(--serif);font-size:1.7rem;margin:0}
+.rv-head .logo{width:84px;height:84px;margin-bottom:10px}
+.rv-ok{font-size:2.4rem;color:#fff}
+.rv-msg{background:var(--brand-l);border-radius:12px;padding:10px 12px;font-size:.9rem;margin:12px 0 0}
+.rv-paso{border-top:1px solid var(--border);padding-top:16px;margin-top:16px}
+.rv-paso h3{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:1.02rem}
+.rv-paso h3 i{font-style:normal;width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:.82rem}
+.rv-cat{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+.rv-svc{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:6px;cursor:pointer}
+.rv-svc.on{border-color:var(--brand);background:var(--brand-l)}.rv-svc input{width:18px;height:18px;accent-color:var(--brand)}
+.rv-svc small{display:block;color:var(--muted)}
+.rv-tot{margin-top:10px;text-align:right;font-size:.92rem}
+.rv-dias{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
+.rv-dias button{flex:none;width:64px;border:1px solid var(--border);border-radius:14px;background:#fff;padding:8px 0;display:flex;flex-direction:column;align-items:center;cursor:pointer;font:inherit;color:inherit;scroll-snap-align:start}
+.rv-dias button b{font-size:1.3rem}.rv-dias button small{font-size:.7rem;color:var(--muted)}
+.rv-dias button.on{background:var(--brand);border-color:var(--brand);color:#fff}.rv-dias button.on small{color:#fff}
+.rv-horas{margin-top:12px}.rv-hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.rv-hgrid button{border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 4px;cursor:pointer;font:inherit;color:inherit;font-weight:600}
+.rv-hgrid button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.rv-res{background:var(--brand-l);border-radius:12px;padding:12px;margin:12px 0;font-size:.92rem;line-height:1.5}
+.rv-conf{border:1px solid var(--border);border-radius:14px;padding:6px 14px;margin:16px 0}
+.rv-conf div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}.rv-conf div:last-child{border:0}
+.rv-conf span{color:var(--muted);font-size:.86rem}.rv-conf b{text-align:right}
 .temps{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px;margin-top:6px}
 .temp{border:2px solid transparent;border-radius:12px;padding:0;background:none;cursor:pointer;text-align:center;font-size:.72rem;color:inherit;line-height:1.2}
 .temp i{display:grid;place-items:center;height:46px;border-radius:10px;font-style:normal;font-size:1.35rem;background:linear-gradient(135deg,var(--t1),var(--t2),var(--t3));margin-bottom:4px;box-shadow:inset 0 0 0 2px var(--ta)}
@@ -478,9 +526,10 @@ const SCHEMA = {
   Gastos:            ['id','fechaGasto','categoria','detalle','proveedor','monto','metodo','usuarioId','nota','anulado','creado'],
   Distribuciones:    ['id','mes','tipo','destino','detalle','monto','usuarioId','nota','anulado','creado'],
   Promociones:       ['id','titulo','tipo','descuento','precio','precioAntes','incluye','descripcion','desde','hasta','condiciones','activo','creado','temporada'],
+  FichaTecnica:      ['id','clienteId','fecha','servicio','formula','notas','estilistaId','fotoAntes','fotoDespues','usuarioId','creado'],
   Config:            ['clave','valor']
 };
-const PREFIJO = { Usuarios:'U', Clientes:'C', Servicios:'S', Tratamientos:'T', PlanesTratamiento:'P', Productos:'R', Citas:'A', Ventas:'V', VentaDetalle:'D', Gastos:'G', Distribuciones:'Q', Promociones:'O' };
+const PREFIJO = { Usuarios:'U', Clientes:'C', Servicios:'S', Tratamientos:'T', PlanesTratamiento:'P', Productos:'R', Citas:'A', Ventas:'V', VentaDetalle:'D', Gastos:'G', Distribuciones:'Q', Promociones:'O', FichaTecnica:'F' };
 const NUMS = new Set(['duracion','precio','sesiones','intervaloDias','sesionesTotales','sesionesUsadas','pagado','costo','stock','stockMin','subtotal','descuento','isv','total','cantidad','monto','precioAntes']);
 const BOOLS = new Set(['activo','anulada','anulado']);
 const SOLO_FECHA = new Set(['cumpleanos','fechaInicio','fechaGasto','desde','hasta']);
@@ -495,6 +544,8 @@ const CONFIG_DEF = {
   apertura: '08:00', cierre: '19:00', intervalo: '15',
   mensajeRecibo: '¡Gracias por tu visita!',
   tema: 'vino', logo: '',
+  reservas: 'no', reservaDias: '1,2,3,4,5,6', reservaHoras: '2', reservaMensaje: '',
+  regaloCumple: '15% de descuento en el servicio que tú elijas',
   mensajeWA: 'Hola {cliente} 👋, te recordamos tu cita en {salon} el {fecha} a las {hora} para {servicio}. ¡Te esperamos!'
 };
 
@@ -510,7 +561,7 @@ const ESCRITURA = {
 /* ===================== ENTRADA HTTP ===================== */
 
 function doGet() {
-  return json_({ ok: true, app: 'Salón de Belleza', version: '3.0', funciones: 'promociones, logo, inicio' });
+  return json_({ ok: true, app: 'Salón de Belleza', version: '4.0', funciones: 'promociones, logo, inicio, reservas, fichas, cumpleaños' });
 }
 
 function doPost(e) {
@@ -538,6 +589,10 @@ function route_(req) {
   }
   if (a === 'login') return MULTI_SALON ? loginMulti_(d) : login_(d);
   if (a === 'registrar') return registrar_(d);
+  // Página pública de reservas (sin usuario)
+  if (a === 'reservaInfo') return reservaInfo_(d);
+  if (a === 'reservaHoras') return reservaHoras_(d);
+  if (a === 'reservar') return lock_(() => reservar_(d));
   const u = auth_(req.token);
   switch (a) {
     case 'logout':          CacheService.getScriptCache().remove('S_' + req.token); return true;
@@ -563,6 +618,9 @@ function route_(req) {
     case 'guardarDistribucion': return lock_(() => guardarDistribucion_(u, d));
     case 'anularDistribucion':  return lock_(() => anularDistribucion_(u, d));
     case 'promociones':     req_(u, ['admin','recepcion']); return rows_('Promociones');
+    case 'guardarFicha':    return lock_(() => guardarFicha_(u, d));
+    case 'fichaCliente':    return fichaCliente_(u, d);
+    case 'fotoFicha':       return fotoFicha_(u, d);
     default: throw new Error('Acción no válida: ' + a);
   }
 }
@@ -810,7 +868,8 @@ function bootstrap_(u, d) {
     productos: rows_('Productos'),
     planes: rows_('PlanesTratamiento'),
     gastoCats: ['admin','recepcion'].indexOf(u.rol) >= 0 ? catalogoGastos_() : [],
-    licencia: licencia_()
+    licencia: licencia_(),
+    salonId: MULTI_SALON && SALON ? SALON.id : ''
   };
   if (MULTI_SALON && SALON && SALON.lic._fila) { try { mSet_('Licencias', SALON.lic._fila, { ultimaConexion: ahora_().replace('T', ' ') }); } catch (e) {} }
   if (d && d.inicio) r.inicio = inicio_(u);
@@ -1044,7 +1103,8 @@ function guardar_(u, d) {
 
 function eliminar_(u, d) {
   req_(u, ['admin']);
-  const permitidas = ['Clientes','Servicios','Tratamientos','Productos','PlanesTratamiento','Citas','Promociones'];
+  const permitidas = ['Clientes','Servicios','Tratamientos','Productos','PlanesTratamiento','Citas','Promociones','FichaTecnica'];
+  if (d.entidad === 'FichaTecnica') { const f = rows_('FichaTecnica').find(x => x.id === d.id); if (f) ['fotoAntes','fotoDespues'].forEach(k => { if (f[k]) { try { DriveApp.getFileById(f[k]).setTrashed(true); } catch (e) {} } }); }
   if (permitidas.indexOf(d.entidad) < 0) throw new Error('No se puede eliminar este tipo de registro');
   if (d.entidad === 'Citas') {
     const c = rows_('Citas').find(x => x.id === d.id);
@@ -1504,7 +1564,157 @@ function historialCliente_(u, d) {
   const ids = {};
   ventas.forEach(v => { v.detalle = []; ids[v.id] = v; });
   rows_('VentaDetalle').forEach(x => { if (ids[x.ventaId]) ids[x.ventaId].detalle.push(x); });
-  return { citas: citas, ventas: ventas, planes: rows_('PlanesTratamiento').filter(p => p.clienteId === d.id) };
+  return { citas: citas, ventas: ventas, planes: rows_('PlanesTratamiento').filter(p => p.clienteId === d.id), fichas: fichaCliente_(u, d) };
+}
+
+/* ===================== FICHA TÉCNICA (fórmulas y fotos) ===================== */
+
+function carpetaFotos_() {
+  const nombre = MULTI_SALON && SALON ? 'Fotos de fichas – ' + SALON.lic.salon + ' (' + SALON.id + ')' : 'Salón – Fotos de fichas';
+  const it = DriveApp.getFoldersByName(nombre);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(nombre);
+}
+
+function guardarFoto_(dataUrl, nombre) {
+  const m = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(String(dataUrl || ''));
+  if (!m) throw new Error('La foto no es válida');
+  if (m[2].length > 2800000) throw new Error('La foto es muy pesada');
+  const blob = Utilities.newBlob(Utilities.base64Decode(m[2]), m[1], nombre);
+  return carpetaFotos_().createFile(blob).getId();
+}
+
+function guardarFicha_(u, d) {
+  const r = Object.assign({}, d.registro || {});
+  if (!r.clienteId || !rows_('Clientes').some(c => c.id === r.clienteId)) throw new Error('Selecciona un cliente');
+  if (!String(r.servicio || '').trim() && !String(r.formula || '').trim() && !String(r.notas || '').trim() && !d.fotoAntes && !d.fotoDespues) throw new Error('Escribe algo en la ficha o agrega una foto');
+  const prev = r.id ? rows_('FichaTecnica').find(x => x.id === r.id) : null;
+  if (r.id && !prev) throw new Error('El registro ya no existe');
+  if (prev && u.rol === 'estilista' && prev.usuarioId !== u.id) throw new Error('Solo puedes editar tus propios registros');
+  r.fecha = String(r.fecha || hoy_()).slice(0, 10);
+  ['Antes', 'Despues'].forEach(k => {
+    const campo = 'foto' + k, dato = d[campo];
+    if (dato === 'quitar') r[campo] = '';
+    else if (dato) r[campo] = guardarFoto_(dato, 'ficha-' + r.clienteId + '-' + k.toLowerCase() + '-' + Date.now() + '.jpg');
+    else r[campo] = prev ? prev[campo] : '';
+    if (prev && prev[campo] && prev[campo] !== r[campo]) { try { DriveApp.getFileById(prev[campo]).setTrashed(true); } catch (e) {} }
+  });
+  if (!prev) { r.usuarioId = u.id; r.creado = ahora_(); if (!r.estilistaId) r.estilistaId = u.id; }
+  return upsert_('FichaTecnica', r);
+}
+
+function fotoFicha_(u, d) {
+  const id = String(d.id || '');
+  if (!id || !rows_('FichaTecnica').some(f => f.fotoAntes === id || f.fotoDespues === id)) throw new Error('Foto no encontrada');
+  const b = DriveApp.getFileById(id).getBlob();
+  return 'data:' + (b.getContentType() || 'image/jpeg') + ';base64,' + Utilities.base64Encode(b.getBytes());
+}
+
+function fichaCliente_(u, d) {
+  return rows_('FichaTecnica').filter(f => f.clienteId === d.id).sort((a, b) => a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : (a.creado < b.creado ? 1 : -1));
+}
+
+// Ejecútala una vez desde el editor si Apps Script pide permisos de Drive para las fotos
+function autorizar() {
+  DriveApp.getRootFolder();
+  Logger.log('Permisos listos para guardar fotos de fichas.');
+}
+
+/* ===================== RESERVAS EN LÍNEA (página pública) ===================== */
+
+function reservaSalon_(d) {
+  if (MULTI_SALON) {
+    const lic = salonPorId_(String(d.salon || ''));
+    if (!lic) throw new Error('Este enlace de reservas no es válido');
+    setSalon_(lic);
+    const L = licencia_();
+    if (L.estado === 'vencida' || L.estado === 'bloqueada') throw new Error('Las reservas en línea de este salón no están disponibles');
+  }
+  const cfg = config_();
+  if (cfg.reservas !== 'si') throw new Error('Este salón no está recibiendo reservas en línea por ahora. Escríbele por WhatsApp.');
+  return cfg;
+}
+
+function estilistasReserva_() {
+  const us = rows_('Usuarios').filter(x => x.activo);
+  const est = us.filter(x => x.rol === 'estilista');
+  return (est.length ? est : us).map(x => ({ id: x.id, nombre: x.nombre, color: x.color }));
+}
+
+function reservaInfo_(d) {
+  const cfg = reservaSalon_(d);
+  return {
+    nombre: cfg.nombre, logo: cfg.logo, tema: cfg.tema, telefono: cfg.telefono, direccion: cfg.direccion, moneda: cfg.moneda,
+    apertura: cfg.apertura, cierre: cfg.cierre, intervalo: Number(cfg.intervalo) || 15, dias: String(cfg.reservaDias || '1,2,3,4,5,6'),
+    mensaje: cfg.reservaMensaje || '', anticipacion: Number(cfg.reservaHoras || 2), hoy: hoy_(), ahora: ahora_(),
+    servicios: rows_('Servicios').filter(s => s.activo).map(s => ({ id: s.id, nombre: s.nombre, categoria: s.categoria, duracion: s.duracion, precio: s.precio })),
+    estilistas: estilistasReserva_()
+  };
+}
+
+function minutos_(hhmm) { const p = String(hhmm || '00:00').split(':'); return Number(p[0]) * 60 + Number(p[1] || 0); }
+function hhmm_(m) { return ('0' + Math.floor(m / 60)).slice(-2) + ':' + ('0' + (m % 60)).slice(-2); }
+
+function horasLibres_(cfg, fecha, dur, estilistaId) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(fecha))) throw new Error('Fecha no válida');
+  const h = hoy_();
+  const lim = Utilities.formatDate(new Date(Date.now() + 60 * 86400000), TZ, 'yyyy-MM-dd');
+  if (fecha < h || fecha > lim) return [];
+  const dia = new Date(fecha + 'T12:00:00').getDay();
+  if (String(cfg.reservaDias || '1,2,3,4,5,6').split(',').indexOf(String(dia)) < 0) return [];
+  const paso = Number(cfg.intervalo) || 15, ini = minutos_(cfg.apertura), fin = minutos_(cfg.cierre);
+  const est = estilistasReserva_().filter(e => !estilistaId || e.id === estilistaId);
+  const citas = rows_('Citas').filter(c => c.inicio.slice(0, 10) === fecha && NO_OCUPA.indexOf(c.estado) < 0);
+  const ahoraMin = fecha === h ? minutos_(ahora_().slice(11, 16)) + (Number(cfg.reservaHoras || 2) * 60) : -1;
+  const out = [];
+  for (let m = ini; m + dur <= fin; m += paso) {
+    if (m < ahoraMin) continue;
+    const a = fecha + 'T' + hhmm_(m), b = fecha + 'T' + hhmm_(m + dur);
+    const libres = est.filter(e => !citas.some(c => c.estilistaId === e.id && a < c.fin && b > c.inicio)).map(e => e.id);
+    if (libres.length) out.push({ hora: hhmm_(m), estilistas: libres });
+  }
+  return out;
+}
+
+function serviciosReserva_(ids) {
+  const svs = rows_('Servicios').filter(s => s.activo);
+  const l = (Array.isArray(ids) ? ids : []).map(id => svs.find(s => s.id === id)).filter(Boolean);
+  if (!l.length) throw new Error('Elige al menos un servicio');
+  if (l.length > 5) throw new Error('Puedes reservar hasta 5 servicios a la vez');
+  return l;
+}
+
+function reservaHoras_(d) {
+  const cfg = reservaSalon_(d);
+  const l = serviciosReserva_(d.servicios);
+  return horasLibres_(cfg, d.fecha, l.reduce((a, s) => a + (Number(s.duracion) || 30), 0), d.estilistaId || '');
+}
+
+function reservar_(d) {
+  const cfg = reservaSalon_(d);
+  const nombre = String(d.nombre || '').trim().replace(/\s+/g, ' ').slice(0, 60);
+  const tel = String(d.telefono || '').replace(/\D/g, '');
+  if (nombre.length < 3) throw new Error('Escribe tu nombre completo');
+  if (tel.length < 8) throw new Error('Escribe tu número de WhatsApp');
+  const c = CacheService.getScriptCache(), k = 'RV_' + (SALON ? SALON.id : '') + tel.slice(-8), n = Number(c.get(k) || 0);
+  if (n >= 3) throw new Error('Ya hiciste varias reservas. Si necesitas otra, escríbele al salón por WhatsApp.');
+  const l = serviciosReserva_(d.servicios), dur = l.reduce((a, s) => a + (Number(s.duracion) || 30), 0);
+  const libre = horasLibres_(cfg, d.fecha, dur, d.estilistaId || '').find(x => x.hora === d.hora);
+  if (!libre) throw new Error('Ese horario se acaba de ocupar. Elige otro, por favor.');
+  const estilistaId = d.estilistaId && libre.estilistas.indexOf(d.estilistaId) >= 0 ? d.estilistaId : libre.estilistas[0];
+  let cli = rows_('Clientes').find(x => String(x.telefono || '').replace(/\D/g, '').slice(-8) === tel.slice(-8));
+  if (!cli) {
+    const t8 = tel.slice(-8);
+    cli = upsert_('Clientes', { nombre: nombre, telefono: tel.length === 8 ? t8.slice(0, 4) + '-' + t8.slice(4) : '+' + tel, notas: 'Se registró en las reservas en línea', creado: ahora_() });
+  }
+  const ini = d.fecha + 'T' + d.hora, fin = d.fecha + 'T' + hhmm_(minutos_(d.hora) + dur);
+  const cita = guardarCita_({ id: 'WEB', rol: 'admin' }, { registro: {
+    clienteId: cli.id, estilistaId: estilistaId, tipo: 'servicio', refId: l[0].id, servicios: l.map(s => ({ id: s.id })),
+    inicio: ini, fin: fin, precio: l.reduce((a, s) => a + (Number(s.precio) || 0), 0),
+    notas: ('Reserva en línea' + (d.nota ? ' · ' + String(d.nota).slice(0, 200) : ''))
+  } });
+  c.put(k, String(n + 1), 21600);
+  const est = rows_('Usuarios').find(x => x.id === estilistaId);
+  return { inicio: cita.inicio, fin: cita.fin, servicios: l.map(s => s.nombre), estilista: est ? est.nombre : '', precio: cita.precio, cliente: cli.nombre, telefonoSalon: cfg.telefono };
 }
 
 /* ===================== INSTALACIÓN ===================== */
@@ -1824,6 +2034,7 @@ function pintarLogo() {
 function aplicarDatos(d) {
   ['config', 'usuarios', 'clientes', 'servicios', 'tratamientos', 'productos', 'planes', 'gastoCats'].forEach(k => { if (d[k]) S[k] = d[k]; });
   if (d.licencia) S.licencia = d.licencia;
+  if (d.salonId !== undefined) S.salonId = d.salonId;
   aplicarTema(S.config.tema || LS.get('salon_tema', 'vino'));
   if (d.usuario) S.user = d.usuario;
   $('#brand-name').textContent = S.config.nombre || 'Salón';
@@ -1903,7 +2114,7 @@ function tarjetaCita(c, conFecha) {
   return `<div class="evcard ${esc(c.estado)}" data-cita="${esc(c.id)}" style="--c:${esc(colorCita(c))}">
     <div class="evcard-time"><b>${fHora(c.inicio)}</b><span>${fHora(c.fin)}</span></div>
     <div class="evcard-body">${conFecha ? `<div class="evcard-date">${esc(fFecha(c.inicio))}</div>` : ''}
-      <div class="evcard-title">${esc(nomCliente(c.clienteId))}</div>
+      <div class="evcard-title">${esc(nomCliente(c.clienteId))}${c.creadoPor === 'WEB' ? '<span class="web-tag">🌐 En línea</span>' : ''}</div>
       <div class="muted sm">${esc(descCita(c))} · ${esc(nomUsuario(c.estilistaId))}</div></div>
     <span class="badge" style="--b:${e.c}">${e.t}</span></div>`;
 }
@@ -1933,10 +2144,11 @@ async function vInicio() {
         <h3 style="margin-top:22px">Próximos días</h3><div class="timeline" id="i-prox"></div></section>
       <div class="stack">
         ${puede('admin', 'recepcion') ? `<section class="card"><h3>Inventario bajo</h3><div class="mini-list">${stockBajo.length ? stockBajo.map(p => `<div><span>${esc(p.nombre)}</span><b style="color:var(--warn)">${p.stock} u.</b></div>`).join('') : '<p class="muted sm">Todo el inventario está en orden.</p>'}</div></section>
-        <section class="card"><h3>Cumpleaños del mes 🎂</h3><div class="mini-list">${cumple.length ? cumple.map(c => `<div><span>${esc(c.nombre)}</span><span class="muted">${esc(fFecha(c.cumpleanos.replace(/^\d{4}/, h.slice(0, 4))))}</span></div>`).join('') : '<p class="muted sm">Nadie cumple años este mes.</p>'}</div></section>` : ''}
+        <section class="card"><h3>Cumpleaños del mes 🎂</h3><div class="mini-list">${cumple.length ? cumple.map(c => `<div class="cum-row"><span class="grow">${esc(c.nombre)}<br><span class="muted sm">${esc(fFecha(c.cumpleanos.replace(/^\d{4}/, h.slice(0, 4))))}${c.cumpleanos.slice(5) === h.slice(5) ? ' · ¡es hoy! 🎉' : ''}</span></span>${puede('admin', 'recepcion') ? `<button class="btn sm ${felicitada(c.id) ? 'ghost' : 'pri'}" data-felic="${esc(c.id)}">${felicitada(c.id) ? '✓ Felicitada' : 'Felicitar'}</button>` : ''}</div>`).join('') : '<p class="muted sm">Nadie cumple años este mes.</p>'}</div></section>` : ''}
       </div></div>`;
   $('#i-cita').onclick = () => abrirCita();
   $('#i-venta').onclick = () => ir('ventas');
+  $$('[data-felic]', el).forEach(b => b.onclick = async () => { await felicitar(byId(S.clientes, b.dataset.felic)); b.className = 'btn sm ghost'; b.textContent = '✓ Felicitada'; });
   const lic = S.licencia;
   if (lic && lic.estado === 'prueba' && puede('admin')) {
     const tel = String(lic.contacto || '').replace(/\D/g, '');
@@ -2250,6 +2462,7 @@ function detalleCita(id) {
     cerrarModal(); toast('Cita: ' + ESTADOS[nuevo].t, 'ok'); refrescarCitas();
   };
   b.push({ t: 'Imagen para el cliente', cls: '', fn: () => compartirCita(c) });
+  if (c.clienteId && byId(S.clientes, c.clienteId)) b.push({ t: 'Ficha técnica', cls: '', fn: () => fichaCliente(byId(S.clientes, c.clienteId), { servicio: descCita(c).split(' · plan')[0], estilistaId: c.estilistaId }) });
   if (ed) {
     if (c.estado === 'pendiente') b.push({ t: 'Confirmar', cls: '', fn: () => est('confirmada') });
     if (['pendiente', 'confirmada'].includes(c.estado)) {
@@ -2588,17 +2801,37 @@ function editarCrud(cid, reg) {
 }
 async function historialCliente(cli) {
   try {
-    const h = await api('historialCliente', { id: cli.id });
-    guardarCache(h.citas);
-    const gasto = h.ventas.filter(v => !v.anulada).reduce((a, v) => a + v.total, 0);
-    modal('Historial · ' + cli.nombre, `<div class="kpis"><div class="kpi"><span>Visitas</span><b>${h.citas.filter(c => c.estado === 'completada').length}</b></div>
-      <div class="kpi"><span>Compras</span><b>${money(gasto)}</b></div><div class="kpi"><span>Planes</span><b>${h.planes.length}</b></div></div>
-      ${h.planes.length ? `<h3>Planes de tratamiento</h3><div class="mini-list">${h.planes.map(p => { const t = byId(S.tratamientos, p.tratamientoId) || {}; return `<div><span>${esc(t.nombre || 'Plan')} · ${p.sesionesUsadas}/${p.sesionesTotales}</span><span class="muted">${esc(p.estado)} · saldo ${money(Math.max(0, p.precio - p.pagado))}</span></div>`; }).join('')}</div>` : ''}
-      <h3 style="margin-top:16px">Citas</h3><div class="timeline">${h.citas.length ? h.citas.slice(0, 30).map(c => tarjetaCita(c, true)).join('') : '<p class="muted sm">Sin citas registradas.</p>'}</div>
-      <h3 style="margin-top:16px">Compras</h3><div class="mini-list">${h.ventas.length ? h.ventas.slice(0, 30).map(v => `<div><span>${esc(fFecha(v.fecha))} · ${esc(v.detalle.map(d => d.descripcion).join(', '))}</span><b ${v.anulada ? 'style="text-decoration:line-through"' : ''}>${money(v.total)}</b></div>`).join('') : '<p class="muted sm">Sin compras.</p>'}</div>`, [
+    const hh = await api('historialCliente', { id: cli.id });
+    guardarCache(hh.citas);
+    const fichas = hh.fichas || [];
+    const gasto = hh.ventas.filter(v => !v.anulada).reduce((a, v) => a + v.total, 0);
+    const visitas = hh.citas.filter(c => c.estado === 'completada');
+    const ult = visitas[0];
+    const items = [].concat(
+      hh.citas.map(c => ({ f: c.inicio, i: c.estado === 'completada' ? '✂️' : c.estado === 'cancelada' || c.estado === 'no_asistio' ? '✖️' : '📅', t: descCita(c).split(' · plan')[0], s: `${(ESTADOS[c.estado] || {}).t || c.estado} · ${nomUsuario(c.estilistaId)}${num(c.precio) ? ' · ' + money(c.precio) : ''}`, cita: c.id })),
+      hh.ventas.map(v => ({ f: v.fecha, i: '🛍️', t: v.detalle.map(d => d.descripcion).join(', ') || 'Venta', s: `${v.anulada ? 'Anulada · ' : ''}${money(v.total)} · ${v.metodo}` })),
+      fichas.map(f => ({ f: f.fecha + 'T23:59', i: '🧪', t: 'Ficha técnica: ' + (f.servicio || 'registro'), s: (f.formula || f.notas || (f.fotoAntes || f.fotoDespues ? 'Con fotos' : '')).slice(0, 90) }))
+    ).sort((a, b) => a.f < b.f ? 1 : -1);
+    const tl = l => l.length ? l.map(x => `<div class="tl-item" ${x.cita ? `data-cita="${esc(x.cita)}" style="cursor:pointer"` : ''}><div class="tl-ico">${x.i}</div><div class="grow"><b>${esc(x.t)}</b><div class="muted sm">${esc(fFecha(x.f))} · ${esc(x.s)}</div></div></div>`).join('') : '<p class="muted sm">Sin registros.</p>';
+    modal('Historial · ' + cli.nombre, `<div class="kpis"><div class="kpi"><span>Visitas</span><b>${visitas.length}</b></div>
+      <div class="kpi"><span>Compras</span><b>${money(gasto)}</b></div><div class="kpi"><span>Última visita</span><b style="font-size:1rem">${ult ? esc(fFecha(ult.inicio)) : '—'}</b></div></div>
+      ${cli.notas ? `<p class="sm" style="margin:10px 0 0"><b>Nota de la ficha:</b> ${esc(cli.notas)}</p>` : ''}
+      <div class="tabs" id="hc-tabs" style="margin-top:14px"><button data-t="todo" class="on">Todo</button><button data-t="ficha">Ficha técnica (${fichas.length})</button><button data-t="citas">Citas</button><button data-t="compras">Compras</button></div>
+      <div id="hc-body"></div>`, [
+      { t: '🧪 Nuevo registro técnico', cls: '', fn: () => editarFicha(cli, null) },
       { t: 'Agendar cita', cls: 'pri', fn: () => { cerrarModal(); abrirCita({ clienteId: cli.id }); } }
     ], { wide: true });
-    enlazarTarjetas($('#m-body'));
+    const ver = t => {
+      $$('#hc-tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+      const body = $('#hc-body');
+      if (t === 'todo') body.innerHTML = `<div>${tl(items.slice(0, 80))}</div>`;
+      if (t === 'citas') body.innerHTML = `<div>${tl(items.filter(x => x.cita).slice(0, 80))}</div>`;
+      if (t === 'compras') body.innerHTML = `<div>${tl(items.filter(x => x.i === '🛍️'))}</div>${hh.planes.length ? `<h3 style="margin-top:14px">Planes de tratamiento</h3><div class="mini-list">${hh.planes.map(p => { const tt = byId(S.tratamientos, p.tratamientoId) || {}; return `<div><span>${esc(tt.nombre || 'Plan')} · ${p.sesionesUsadas}/${p.sesionesTotales}</span><span class="muted">${esc(p.estado)} · saldo ${money(Math.max(0, p.precio - p.pagado))}</span></div>`; }).join('')}</div>` : ''}`;
+      if (t === 'ficha') { body.innerHTML = fichas.length ? fichas.map(fichaHTML).join('') : '<div class="empty">Sin registros técnicos. Toca «Nuevo registro técnico».</div>'; enlazarFichas(cli, fichas); }
+      enlazarTarjetas(body);
+    };
+    $$('#hc-tabs button').forEach(b => b.onclick = () => ver(b.dataset.t));
+    ver('todo');
   } catch (e) { err(e); }
 }
 function vClientes() { renderCrud('clientes', $('#v-clientes')); }
@@ -2767,6 +3000,7 @@ function vAjustes() {
     { k: 'intervalo', l: 'Intervalo de agenda', type: 'select', opts: () => [['10', '10 min'], ['15', '15 min'], ['20', '20 min'], ['30', '30 min']] },
     { k: 'apertura', l: 'Hora de apertura', type: 'time' }, { k: 'cierre', l: 'Hora de cierre', type: 'time' },
     { k: 'mensajeRecibo', l: 'Mensaje al pie del comprobante', full: 1 },
+    { k: 'regaloCumple', l: 'Regalo de cumpleaños (sale en la tarjeta de felicitación)', full: 1 },
     { k: 'mensajeWA', l: 'Recordatorio de WhatsApp — usa {cliente} {salon} {fecha} {hora} {servicio}', type: 'textarea', full: 1 }
   ];
   el.innerHTML = `<div class="grid2">
@@ -2774,6 +3008,14 @@ function vAjustes() {
       <div style="margin-top:14px"><button class="btn pri" id="cf-save">Guardar ajustes</button></div></section>` : ''}
     <div class="stack">${puede('admin') ? `<section class="card"><h3>Colores del sistema</h3><p class="muted sm" style="margin:-4px 0 12px">Se aplican a todo el equipo y a las imágenes que reciben tus clientes.</p>
       <div class="temas">${TEMAS.map(t => `<button type="button" class="tema ${t.id === S.tema ? 'on' : ''}" data-tema="${t.id}" style="--t1:${t.img[0]};--t2:${t.img[1]};--t3:${t.img[2]};--ta:${t.oro}"><span class="sw"><i></i></span>${t.n}</button>`).join('')}</div></section>` : ''}
+    ${puede('admin') ? (() => { const dias = String(c.reservaDias || '1,2,3,4,5,6').split(','), url = enlaceReservas(); return `<section class="card"><h3>Reservas en línea 🌐</h3>
+      <p class="muted sm" style="margin:-4px 0 12px">Tus clientas eligen servicio, estilista, día y hora desde un enlace. La cita entra a la agenda como <b>pendiente</b> con la etiqueta «En línea» para que la confirmes.</p>
+      <form class="form" onsubmit="return false"><label class="f chk full"><input type="checkbox" id="rvc-on" ${c.reservas === 'si' ? 'checked' : ''}> Recibir reservas en línea</label>
+      <div class="f full">Días en que se puede reservar<div class="rv-chips" id="rvc-dias">${DIAS_SEM.map((d, i) => `<button type="button" data-d="${i}" class="${dias.includes(String(i)) ? 'on' : ''}">${d}</button>`).join('')}</div></div>
+      <label class="f">Reservar con al menos<select class="input" id="rvc-ant">${[[0, 'Sin mínimo'], [1, '1 hora de anticipación'], [2, '2 horas'], [4, '4 horas'], [12, '12 horas'], [24, '1 día']].map(([v, t]) => `<option value="${v}" ${String(v) === String(c.reservaHoras || '2') ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      <label class="f full">Mensaje de bienvenida (opcional)<input class="input" id="rvc-msg" maxlength="160" value="${esc(c.reservaMensaje || '')}" placeholder="Ej. Te esperamos con un café ☕"></label></form>
+      <div class="rv-link"><input class="input" id="rvc-url" readonly value="${esc(url)}"><div class="row-btns"><button class="btn" id="rvc-copy" type="button">Copiar enlace</button><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent('Reserva tu cita en ' + (c.nombre || 'nuestro salón') + ' aquí 👉 ' + url)}" target="_blank" rel="noopener">Compartir</a><a class="btn ghost" href="${esc(url)}" target="_blank" rel="noopener">Ver página</a></div></div>
+      <div style="margin-top:14px"><button class="btn pri" id="rvc-save" type="button">Guardar reservas</button></div></section>`; })() : ''}
     ${puede('admin') ? `<section class="card"><h3>Logo del salón</h3><p class="muted sm" style="margin:-4px 0 12px">Aparece en el menú, la pantalla de ingreso y en las imágenes de citas, comprobantes y promociones.</p>
       <div class="logo-edit"><div class="logo-prev" id="lg-prev">${c.logo ? `<img src="${c.logo}" alt="Logo">` : 'Sin logo'}</div>
       <div class="row-btns"><label class="btn pri" style="cursor:pointer">${c.logo ? 'Cambiar logo' : 'Subir logo'}<input type="file" id="lg-file" accept="image/*" hidden></label>${c.logo ? '<button class="btn ghost" id="lg-del" type="button">Quitar</button>' : ''}</div>
@@ -2814,6 +3056,16 @@ function vAjustes() {
     try { S.config = await api('guardar', { entidad: 'Config', registro: { tema: id } }, true); toast('Colores actualizados para todo el equipo', 'ok'); }
     catch (e) { aplicarTema(prev); $$('#v-ajustes [data-tema]').forEach(x => x.classList.toggle('on', x.dataset.tema === prev)); err(e); }
   });
+  $$('#rvc-dias [data-d]').forEach(b => b.onclick = () => b.classList.toggle('on'));
+  if ($('#rvc-copy')) $('#rvc-copy').onclick = async () => { try { await navigator.clipboard.writeText($('#rvc-url').value); toast('Enlace copiado', 'ok'); } catch (e) { $('#rvc-url').select(); document.execCommand('copy'); toast('Enlace copiado', 'ok'); } };
+  if ($('#rvc-save')) $('#rvc-save').onclick = async () => {
+    try {
+      const dias = $$('#rvc-dias [data-d].on').map(b => b.dataset.d).join(',');
+      if ($('#rvc-on').checked && !dias) throw new Error('Elige al menos un día para recibir reservas');
+      S.config = await api('guardar', { entidad: 'Config', registro: { reservas: $('#rvc-on').checked ? 'si' : 'no', reservaDias: dias, reservaHoras: $('#rvc-ant').value, reservaMensaje: $('#rvc-msg').value.trim() } });
+      toast($('#rvc-on').checked ? 'Reservas en línea activadas' : 'Reservas en línea desactivadas', 'ok');
+    } catch (e) { err(e); }
+  };
   if ($('#mi-nom-save')) $('#mi-nom-save').onclick = async () => {
     try {
       const nombre = $('#mi-nom').value.trim().replace(/\s+/g, ' ');
@@ -3653,8 +3905,11 @@ function demoShims() {
     openById: id => { if (!db().books || !db().books[id]) throw new Error('No se encontró la hoja del salón'); return Libro(id); },
     create: nombre => { const id = 'H' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); (db().books = db().books || {})[id] = { nombre, sheets: {}, order: [] }; return Libro(id); }
   };
-  const carpeta = { getName: () => 'Salones – Datos' };
-  const DriveApp = { getFoldersByName: () => ({ hasNext: () => true, next: () => carpeta }), createFolder: () => carpeta, getFileById: () => ({ moveTo: () => {} }) };
+  const archivos = () => (db().files = db().files || {});
+  const carpeta = { getName: () => 'Carpeta', createFile: b => { const id = 'FD' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); archivos()[id] = 'data:' + b.mime + ';base64,' + b.data; return { getId: () => id }; } };
+  const DriveApp = { getFoldersByName: () => ({ hasNext: () => true, next: () => carpeta }), createFolder: () => carpeta, getRootFolder: () => carpeta,
+    getFileById: id => ({ moveTo: () => {}, setTrashed: () => { delete archivos()[id]; },
+      getBlob: () => { const m = /^data:([^;]+);base64,(.*)$/.exec(archivos()[id] || '') || []; return { getContentType: () => m[1] || 'image/jpeg', getBytes: () => ({ __b64: m[2] || '' }) }; } }) };
   const fmtTZ = (d, tz) => {
     const p = {};
     new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
@@ -3666,7 +3921,9 @@ function demoShims() {
   const Utilities = {
     DigestAlgorithm: { SHA_256: 'SHA_256' }, Charset: { UTF_8: 'UTF_8' },
     computeDigest: (alg, txt) => sha256(new TextEncoder().encode(String(txt))),
-    base64Encode: bytes => btoa(bytes.map(b => String.fromCharCode(b & 255)).join('')),
+    base64Encode: bytes => (bytes && bytes.__b64 !== undefined) ? bytes.__b64 : btoa(bytes.map(b => String.fromCharCode(b & 255)).join('')),
+    base64Decode: s => ({ __b64: s }),
+    newBlob: (data, mime, name) => ({ data: data && data.__b64 !== undefined ? data.__b64 : data, mime, name }),
     getUuid: uuid,
     formatDate: (d, tz, fmt) => { const p = fmtTZ(d, tz), f = `${p.year}-${p.month}-${p.day}`; return fmt === 'yyyy-MM-dd' ? f : `${f}T${p.hour}:${p.minute}`; }
   };
@@ -4201,6 +4458,220 @@ async function dibujarPromo(p, altoFijo) {
   return cv;
 }
 
+/* ===================== FOTOS (se achican antes de subir) ===================== */
+function achicarFoto(file, lado, calidad) {
+  return new Promise((ok, mal) => {
+    if (!/^image\//.test(file.type)) return mal(new Error('Elige una foto'));
+    const r = new FileReader();
+    r.onerror = () => mal(new Error('No se pudo leer la foto'));
+    r.onload = () => {
+      const im = new Image();
+      im.onerror = () => mal(new Error('No se pudo abrir la foto'));
+      im.onload = () => {
+        const k = Math.min(1, (lado || 1200) / Math.max(im.width, im.height));
+        const cv = document.createElement('canvas'); cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k);
+        const x = cv.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(im, 0, 0, cv.width, cv.height);
+        ok(cv.toDataURL('image/jpeg', calidad || .78));
+      };
+      im.src = r.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+S.fotos = {};
+async function fotoFicha(id) {
+  if (!id) return '';
+  if (!S.fotos[id]) S.fotos[id] = api('fotoFicha', { id }, true).catch(() => { delete S.fotos[id]; return ''; });
+  return S.fotos[id];
+}
+function cargarFotos(root) {
+  $$('img[data-foto]', root).forEach(async im => { const u = await fotoFicha(im.dataset.foto); if (u) { im.src = u; im.classList.add('ok'); im.onclick = () => verFoto(u); } });
+}
+function verFoto(u) { const w = document.createElement('div'); w.className = 'foto-full'; w.innerHTML = `<img src="${u}" alt="">`; w.onclick = () => w.remove(); document.body.appendChild(w); }
+
+/* ===================== FICHA TÉCNICA DEL CLIENTE ===================== */
+function fichaHTML(f) {
+  const fotos = [['fotoAntes', 'Antes'], ['fotoDespues', 'Después']].filter(([k]) => f[k]);
+  return `<div class="ficha" data-ficha="${esc(f.id)}"><div class="ficha-h"><b>${esc(f.servicio || 'Registro técnico')}</b><span class="muted sm">${esc(fFecha(f.fecha))}${f.estilistaId ? ' · ' + esc(nomUsuario(f.estilistaId)) : ''}</span></div>
+    ${f.formula ? `<div class="ficha-f"><span>Fórmula</span>${esc(f.formula).replace(/\n/g, '<br>')}</div>` : ''}
+    ${f.notas ? `<div class="sm">${esc(f.notas).replace(/\n/g, '<br>')}</div>` : ''}
+    ${fotos.length ? `<div class="ficha-fotos">${fotos.map(([k, t]) => `<figure><img data-foto="${esc(f[k])}" alt="${t}"><figcaption>${t}</figcaption></figure>`).join('')}</div>` : ''}
+    <div class="row-btns"><button class="btn sm ghost" data-fed="${esc(f.id)}">Editar</button><button class="btn sm ghost" data-fcp="${esc(f.id)}">Usar como base</button></div></div>`;
+}
+async function fichaCliente(cli, opciones) {
+  try {
+    const l = await api('fichaCliente', { id: cli.id });
+    modal('Ficha técnica · ' + cli.nombre, `<p class="muted sm" style="margin-top:0">Fórmulas, técnicas y fotos de antes y después para repetir el resultado exacto.</p>
+      <div id="fi-list">${l.length ? l.map(fichaHTML).join('') : '<div class="empty">Todavía no hay registros técnicos para esta clienta.</div>'}</div>`, [
+      { t: ico('plus') + ' Nuevo registro', cls: 'pri', fn: () => editarFicha(cli, null, opciones) }
+    ], { wide: true });
+    enlazarFichas(cli, l, opciones);
+  } catch (e) { err(e); }
+}
+function enlazarFichas(cli, l, opciones) {
+  const box = $('#m-body');
+  cargarFotos(box);
+  $$('[data-fed]', box).forEach(b => b.onclick = () => editarFicha(cli, l.find(f => f.id === b.dataset.fed), opciones));
+  $$('[data-fcp]', box).forEach(b => b.onclick = () => { const f = l.find(x => x.id === b.dataset.fcp); editarFicha(cli, null, Object.assign({}, opciones || {}, { base: { servicio: f.servicio, formula: f.formula, notas: '' } })); });
+}
+function editarFicha(cli, f, opciones) {
+  const nuevo = !f, o = opciones || {};
+  f = f || Object.assign({ fecha: hoy(), estilistaId: o.estilistaId || (S.user.rol === 'estilista' ? S.user.id : ''), servicio: o.servicio || '' }, o.base || {});
+  const fotos = { fotoAntes: null, fotoDespues: null };
+  const svcs = S.servicios.map(s => s.nombre).concat(S.tratamientos.map(t => t.nombre));
+  modal((nuevo ? 'Nuevo registro · ' : 'Editar registro · ') + cli.nombre, `<form class="form" onsubmit="return false">
+    <label class="f">Fecha<input class="input" type="date" id="fi-fecha" value="${esc(f.fecha)}"></label>
+    <label class="f">Estilista<select class="input" id="fi-est"><option value="">—</option>${S.usuarios.filter(u => u.activo).map(u => `<option value="${esc(u.id)}" ${u.id === f.estilistaId ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select></label>
+    <label class="f full">Servicio o técnica<input class="input" id="fi-svc" list="fi-svcs" value="${esc(f.servicio || '')}" placeholder="Ej. Tinte completo, balayage, keratina…"><datalist id="fi-svcs">${svcs.map(n => `<option value="${esc(n)}">`).join('')}</datalist></label>
+    <label class="f full">Fórmula<textarea class="input" id="fi-for" rows="3" placeholder="Ej. 7.1 + 8.0 (1:1) · oxigenada 20 vol · 35 min · matizador 9.21">${esc(f.formula || '')}</textarea></label>
+    <label class="f full">Notas<textarea class="input" id="fi-not" rows="2" placeholder="Reacciones, cuidados, lo que le gustó o no…">${esc(f.notas || '')}</textarea></label>
+    <div class="f full"><div class="ficha-sub">${[['fotoAntes', 'Foto antes'], ['fotoDespues', 'Foto después']].map(([k, t]) => `<div class="ficha-up"><div class="ficha-prev" id="fp-${k}">${f[k] ? `<img data-foto="${esc(f[k])}" alt="">` : '<span>Sin foto</span>'}</div>
+      <label class="btn sm" style="cursor:pointer">${t}<input type="file" accept="image/*" data-up="${k}" hidden></label>${f[k] ? `<button type="button" class="btn sm ghost" data-q="${k}">Quitar</button>` : ''}</div>`).join('')}</div></div></form>`, [
+    ...(nuevo || !puede('admin') ? [] : [{ t: ico('trash'), cls: 'danger', fn: async () => {
+      if (!(await confirmar('¿Eliminar este registro de la ficha técnica? Las fotos también se borran.', { si: 'Eliminar', peligro: 1 }))) return;
+      await api('eliminar', { entidad: 'FichaTecnica', id: f.id }); toast('Registro eliminado', 'ok'); fichaCliente(cli, o);
+    } }]),
+    { t: 'Cancelar', cls: '', fn: () => fichaCliente(cli, o) },
+    { t: 'Guardar', cls: 'pri', fn: async () => {
+      const reg = { id: f.id, clienteId: cli.id, fecha: $('#fi-fecha').value || hoy(), estilistaId: $('#fi-est').value, servicio: $('#fi-svc').value.trim(), formula: $('#fi-for').value.trim(), notas: $('#fi-not').value.trim() };
+      const d = { registro: reg };
+      Object.keys(fotos).forEach(k => { if (fotos[k]) d[k] = fotos[k]; });
+      await api('guardarFicha', d);
+      toast('Ficha técnica guardada', 'ok'); fichaCliente(cli, o);
+    } }
+  ], { wide: true });
+  cargarFotos($('#m-body'));
+  $$('[data-up]').forEach(inp => inp.onchange = async () => {
+    const k = inp.dataset.up, file = inp.files[0]; if (!file) return;
+    try { fotos[k] = await achicarFoto(file, 1200, .78); $('#fp-' + k).innerHTML = `<img src="${fotos[k]}" class="ok" alt="">`; } catch (e) { err(e); }
+  });
+  $$('[data-q]').forEach(b => b.onclick = () => { fotos[b.dataset.q] = 'quitar'; $('#fp-' + b.dataset.q).innerHTML = '<span>Se quitará</span>'; b.remove(); });
+}
+
+/* ===================== FELICITACIÓN DE CUMPLEAÑOS ===================== */
+async function dibujarCumple(cli) {
+  await logoListo();
+  try { await Promise.all(['700 80px "Playfair Display"', 'italic 700 80px "Playfair Display"', '400 28px Inter', '600 28px Inter'].map(f => document.fonts.load(f))); } catch (e) {}
+  const SERIF = '"Playfair Display", Georgia, serif', SANS = 'Inter, "Segoe UI", Arial, sans-serif';
+  const P = Object.assign({ tinta: '#ffffff', tinta2: 'rgba(255,255,255,.86)' }, temporada('cumple')), cfg = S.config;
+  const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const x = cv.getContext('2d');
+  fondoPromo(x, W, H, P, String(cli.id).split('').reduce((a, ch) => a * 31 + ch.charCodeAt(0) | 0, 11));
+  const media = logoMarca(x, W / 2, 158);
+  x.textAlign = 'center';
+  let y = 158 + media + 62;
+  x.fillStyle = P.tinta; x.font = `700 40px ${SERIF}`; x.fillText(lineas(x, cfg.nombre || 'Salón de Belleza', 820)[0], W / 2, y);
+  y += 54; x.fillStyle = P.ac; x.font = `700 22px ${SANS}`; espaciado(x, 7); x.fillText('¡FELIZ CUMPLEAÑOS!', W / 2, y); espaciado(x, 0);
+  y += 112; x.fillStyle = P.tinta; x.font = `italic 700 96px ${SERIF}`;
+  let fs = 96; const nom = cli.nombre.split(' ')[0];
+  while (x.measureText(nom).width > 820 && fs > 56) { fs -= 6; x.font = `italic 700 ${fs}px ${SERIF}`; }
+  x.fillText(nom, W / 2, y);
+  y += 64; x.fillStyle = P.tinta2; x.font = `400 30px ${SANS}`;
+  lineas(x, 'Hoy celebramos contigo y te deseamos un año lleno de alegría, salud y momentos para consentirte.', 820).slice(0, 3).forEach(l => { x.fillText(l, W / 2, y); y += 42; });
+  // Tarjeta de regalo
+  const RX = 150, RY = y + 40, RW = W - 300, RH = 300;
+  x.save(); x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 40; x.shadowOffsetY = 14;
+  const gm = x.createLinearGradient(RX, RY, RX + RW, RY + RH); gm.addColorStop(0, P.med[0]); gm.addColorStop(1, P.med[1]);
+  x.fillStyle = gm; rr(x, RX, RY, RW, RH, 28); x.fill(); x.restore();
+  x.strokeStyle = 'rgba(255,255,255,.85)'; x.lineWidth = 3; x.setLineDash([10, 8]); rr(x, RX + 16, RY + 16, RW - 32, RH - 32, 20); x.stroke(); x.setLineDash([]);
+  x.font = '64px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.fillText('🎁', W / 2, RY + 92);
+  x.fillStyle = hexA(P.mt, .8); x.font = `700 22px ${SANS}`; espaciado(x, 6); x.fillText('TU REGALO', W / 2, RY + 138); espaciado(x, 0);
+  x.fillStyle = P.mt; x.font = `700 40px ${SERIF}`;
+  const rl = lineas(x, cfg.regaloCumple || '15% de descuento en el servicio que tú elijas', RW - 90).slice(0, 3);
+  rl.forEach((l, i) => x.fillText(l, W / 2, RY + 196 + i * 46 - (rl.length - 1) * 16));
+  const mes = new Date().toLocaleDateString('es-HN', { month: 'long' });
+  let fy = RY + RH + 76;
+  x.fillStyle = P.ac; x.font = `600 28px ${SANS}`; x.fillText(`Válido durante todo ${mes}`, W / 2, fy);
+  fy += 76; x.fillStyle = P.tinta; x.font = `italic 600 42px ${SERIF}`; x.fillText('¡Te esperamos para celebrarte!', W / 2, fy);
+  fy += 52;
+  const cont = [cfg.telefono ? 'WhatsApp ' + cfg.telefono : '', cfg.direccion ? lineas(x, cfg.direccion, 480)[0] : ''].filter(Boolean).join('  ·  ');
+  if (cont) { x.fillStyle = P.tinta2; x.font = `400 26px ${SANS}`; x.fillText(lineas(x, cont, 800)[0], W / 2, fy); }
+  return cv;
+}
+async function felicitar(cli) {
+  let cv; try { cv = await dibujarCumple(cli); } catch (e) { return err(e); }
+  const nom = cli.nombre.split(' ')[0], y = hoy().slice(0, 4);
+  const texto = `¡Feliz cumpleaños, ${nom}! 🎂✨\n\nEn *${S.config.nombre || 'nuestro salón'}* te deseamos un año maravilloso.\n🎁 Tu regalo: ${S.config.regaloCumple || '15% de descuento en el servicio que tú elijas'} (válido este mes).\n\n¿Te agendo tu cita para celebrarte? 💖`;
+  try { const l = JSON.parse(LS.get('cumple_' + y, '[]')); if (!l.includes(cli.id)) { l.push(cli.id); LS.set('cumple_' + y, JSON.stringify(l)); } } catch (e) {}
+  modalImagen({ titulo: 'Felicitación · ' + cli.nombre, canvas: cv, archivo: `cumple-${nom.toLowerCase().normalize('NFD').replace(/[^a-z]/g, '')}.png`, cli, waHref: cli.telefono ? waTexto(cli, texto) : '' });
+}
+const felicitada = id => { try { return JSON.parse(LS.get('cumple_' + hoy().slice(0, 4), '[]')).includes(id); } catch (e) { return false; } };
+
+/* ===================== RESERVAS EN LÍNEA ===================== */
+function enlaceReservas() {
+  const base = location.origin + location.pathname.replace(/index\.html?$/i, '');
+  return base + '?reservar' + (S.salonId ? '=' + encodeURIComponent(S.salonId) : '');
+}
+const DIAS_SEM = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+function paramReserva() { try { const q = new URLSearchParams(location.search); return q.has('reservar') ? (q.get('reservar') || '') : null; } catch (e) { return null; } }
+async function modoReserva(salon) {
+  document.body.classList.add('reserva');
+  $('#login').hidden = true; $('#app').hidden = true;
+  const R = { salon, sel: [], est: '', fecha: '', hora: '' };
+  const box = document.createElement('div'); box.id = 'rv'; document.body.appendChild(box);
+  box.innerHTML = '<div class="rv-card"><div class="empty">Cargando…</div></div>';
+  let info;
+  try { info = await api('reservaInfo', { salon }); }
+  catch (e) { box.innerHTML = `<div class="rv-card"><div class="logo">${ico('cal')}</div><h1>Reservas en línea</h1><p class="muted" style="text-align:center">${esc(e.message.replace(/^PRUEBA_VENCIDA\|.*/, 'Las reservas en línea de este salón no están disponibles.'))}</p></div>`; return; }
+  aplicarTema(info.tema || 'vino'); S.config = Object.assign({}, S.config, { moneda: info.moneda });
+  document.title = 'Reservar cita · ' + info.nombre;
+  const dias = String(info.dias).split(',');
+  const fechas = []; for (let i = 0; fechas.length < 14 && i < 45; i++) { const f = addDias(info.hoy, i); if (dias.includes(String(parseLocal(f).getDay()))) fechas.push(f); }
+  const cats = {}; info.servicios.forEach(s => { (cats[s.categoria || 'Servicios'] = cats[s.categoria || 'Servicios'] || []).push(s); });
+  const durTotal = () => R.sel.reduce((a, id) => a + (info.servicios.find(s => s.id === id) || {}).duracion, 0);
+  const precioTotal = () => R.sel.reduce((a, id) => a + num((info.servicios.find(s => s.id === id) || {}).precio), 0);
+  box.innerHTML = `<div class="rv-card">
+    <div class="rv-head">${info.logo ? `<div class="logo"><img src="${info.logo}" alt=""></div>` : `<div class="logo">${ico('cut')}</div>`}<h1>${esc(info.nombre)}</h1><p class="muted">Reserva tu cita en línea</p>${info.mensaje ? `<p class="rv-msg">${esc(info.mensaje)}</p>` : ''}</div>
+    <section class="rv-paso"><h3><i>1</i> ¿Qué te vas a hacer?</h3><div id="rv-svcs">${Object.keys(cats).map(c => `<div class="rv-cat">${esc(c)}</div>${cats[c].map(s => `<label class="rv-svc"><input type="checkbox" value="${esc(s.id)}"><span class="grow"><b>${esc(s.nombre)}</b><small>${s.duracion} min</small></span><b>${money(s.precio)}</b></label>`).join('')}`).join('')}</div>
+      <div class="rv-tot" id="rv-tot" hidden></div></section>
+    <section class="rv-paso" id="rv-p2" hidden><h3><i>2</i> ¿Con quién?</h3><div class="rv-chips" id="rv-est"><button type="button" data-e="" class="on">Cualquiera</button>${info.estilistas.map(e => `<button type="button" data-e="${esc(e.id)}" style="--c:${esc(e.color || '#8e3b63')}">${esc(e.nombre.split(' ')[0])}</button>`).join('')}</div></section>
+    <section class="rv-paso" id="rv-p3" hidden><h3><i>3</i> Elige el día y la hora</h3><div class="rv-dias" id="rv-dias">${fechas.map(f => { const d = parseLocal(f); return `<button type="button" data-f="${f}"><small>${f === info.hoy ? 'Hoy' : DIAS_SEM[d.getDay()]}</small><b>${d.getDate()}</b><small>${d.toLocaleDateString('es-HN', { month: 'short' }).replace('.', '')}</small></button>`; }).join('')}</div>
+      <div class="rv-horas" id="rv-horas"><p class="muted sm">Toca un día para ver las horas libres.</p></div></section>
+    <section class="rv-paso" id="rv-p4" hidden><h3><i>4</i> Tus datos</h3><form class="form" id="rv-form" onsubmit="return false">
+      <label class="f full">Nombre completo<input class="input" id="rv-nom" autocomplete="name" maxlength="60" required></label>
+      <label class="f full">Tu WhatsApp<input class="input" id="rv-tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="9876-5432" required></label>
+      <label class="f full">¿Algo que debamos saber? (opcional)<input class="input" id="rv-nota" maxlength="200"></label></form>
+      <div class="rv-res" id="rv-res"></div>
+      <button class="btn pri big" id="rv-ok" type="button" style="width:100%">Reservar mi cita</button><div class="login-err" id="rv-err"></div></section>
+    <p class="l-pie">${info.telefono ? `¿Dudas? Escríbenos al WhatsApp <a href="https://wa.me/${String(info.telefono).replace(/\D/g, '').replace(/^(\d{8})$/, '504$1')}" target="_blank" rel="noopener">${esc(info.telefono)}</a>` : ''}${info.direccion ? '<br>' + esc(info.direccion) : ''}</p></div>`;
+  const pasos = () => {
+    $('#rv-tot').hidden = !R.sel.length;
+    $('#rv-tot').innerHTML = R.sel.length ? `${R.sel.length} servicio${R.sel.length > 1 ? 's' : ''} · ${durTotal()} min · <b>${money(precioTotal())}</b>` : '';
+    $('#rv-p2').hidden = !R.sel.length; $('#rv-p3').hidden = !R.sel.length; $('#rv-p4').hidden = !(R.sel.length && R.hora);
+    if (R.hora) $('#rv-res').innerHTML = `<b>${esc(cap(fFechaLarga(R.fecha)))} · ${hora12(R.fecha + 'T' + R.hora)}</b><br>${esc(R.sel.map(id => info.servicios.find(s => s.id === id).nombre).join(' + '))}${R.est ? ' · con ' + esc((info.estilistas.find(e => e.id === R.est) || {}).nombre || '') : ''}`;
+  };
+  const cargarHoras = async () => {
+    R.hora = ''; pasos();
+    if (!R.fecha) return;
+    const hb = $('#rv-horas'); hb.innerHTML = '<p class="muted sm">Buscando horas libres…</p>';
+    try {
+      const l = await api('reservaHoras', { salon, fecha: R.fecha, servicios: R.sel, estilistaId: R.est }, true);
+      hb.innerHTML = l.length ? `<div class="rv-hgrid">${l.map(h => `<button type="button" data-h="${h.hora}">${hora12(R.fecha + 'T' + h.hora)}</button>`).join('')}</div>` : '<p class="muted sm">No hay horas libres ese día. Prueba con otro día u otra estilista.</p>';
+      $$('[data-h]', hb).forEach(b => b.onclick = () => { R.hora = b.dataset.h; $$('[data-h]', hb).forEach(x => x.classList.toggle('on', x === b)); pasos(); $('#rv-p4').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    } catch (e) { hb.innerHTML = `<p class="login-err">${esc(e.message)}</p>`; }
+  };
+  $$('#rv-svcs input').forEach(i => i.onchange = () => { R.sel = $$('#rv-svcs input:checked').map(x => x.value); i.closest('.rv-svc').classList.toggle('on', i.checked); cargarHoras(); });
+  $$('#rv-est [data-e]').forEach(b => b.onclick = () => { R.est = b.dataset.e; $$('#rv-est [data-e]').forEach(x => x.classList.toggle('on', x === b)); cargarHoras(); });
+  $$('#rv-dias [data-f]').forEach(b => b.onclick = () => { R.fecha = b.dataset.f; $$('#rv-dias [data-f]').forEach(x => x.classList.toggle('on', x === b)); cargarHoras(); });
+  $('#rv-ok').onclick = async () => {
+    const btn = $('#rv-ok'); $('#rv-err').textContent = '';
+    try {
+      btn.disabled = true;
+      const r = await api('reservar', { salon, servicios: R.sel, estilistaId: R.est, fecha: R.fecha, hora: R.hora, nombre: $('#rv-nom').value, telefono: $('#rv-tel').value, nota: $('#rv-nota').value });
+      const tel = String(r.telefonoSalon || '').replace(/\D/g, '').replace(/^(\d{8})$/, '504$1');
+      const msg = `Hola 👋, acabo de reservar en línea:\n📅 ${cap(fFechaLarga(r.inicio))} a las ${hora12(r.inicio)}\n💅 ${r.servicios.join(' + ')}${r.estilista ? '\n👩 Con ' + r.estilista : ''}\nA nombre de ${r.cliente}.`;
+      $('.rv-card').innerHTML = `<div class="rv-head"><div class="logo rv-ok">✓</div><h1>¡Tu cita está reservada!</h1><p class="muted">${esc(r.cliente.split(' ')[0])}, te esperamos en ${esc(info.nombre)}</p></div>
+        <div class="rv-conf"><div><span>Día</span><b>${esc(cap(fFechaLarga(r.inicio)))}</b></div><div><span>Hora</span><b>${hora12(r.inicio)} – ${hora12(r.fin)}</b></div>
+        <div><span>Servicio</span><b>${esc(r.servicios.join(' + '))}</b></div>${r.estilista ? `<div><span>Te atiende</span><b>${esc(r.estilista)}</b></div>` : ''}<div><span>Valor aproximado</span><b>${money(r.precio)}</b></div></div>
+        <p class="muted sm" style="text-align:center">El salón te confirmará por WhatsApp. Si no puedes asistir, avísanos con tiempo.</p>
+        ${tel ? `<a class="btn wa big" style="width:100%" href="https://wa.me/${tel}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Avisar al salón por WhatsApp</a>` : ''}
+        <button class="btn ghost l-alt" type="button" onclick="location.reload()">Hacer otra reserva</button>`;
+      window.scrollTo(0, 0);
+    } catch (e) { $('#rv-err').textContent = e.message; if (/ocupar/.test(e.message)) cargarHoras(); }
+    finally { if ($('#rv-ok')) btn.disabled = false; }
+  };
+}
+
 /* ===================== APP ANDROID (APK) =====================
    Dentro del APK no existe el menú de compartir del navegador: se usa el puente SalonApp */
 function puenteApp() {
@@ -4244,6 +4715,7 @@ document.addEventListener('DOMContentLoaded', () => {
   puenteApp();
   aplicarTema(LS.get('salon_tema', 'vino'));
   try { if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
+  { const rv = paramReserva(); if (rv !== null) { modoReserva(rv); return; } }
   $('#l-salon').textContent = LS.get('salon_nombre', '') || 'Salón de Belleza';
   if (MODO_CUENTAS) pintarCuentas();
   { const lg = LS.get('salon_logo', ''); if (lg) { S.config.logo = lg; pintarLogo(); } }
