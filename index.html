@@ -214,6 +214,24 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .plan-hint{background:#f2f7fc;border:1px solid #d5e5f5;border-radius:10px;padding:8px 10px;font-size:.84rem;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}
 
 /* Planes */
+.promos{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.promo{border:1px solid var(--border);border-radius:var(--radius);background:#fff;overflow:hidden;display:flex;flex-direction:column}
+.promo-top{position:relative;padding:18px 16px 16px;color:#fff;background:linear-gradient(135deg,var(--brand-d),var(--brand));display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.promo-top .badge{background:rgba(255,255,255,.92)}
+.promo-of{font-family:var(--serif);font-size:2rem;font-weight:700;line-height:1;color:#fff}
+.promo-of small{display:block;font-family:Inter,system-ui,sans-serif;font-size:.78rem;font-weight:500;opacity:.9;margin-top:6px;letter-spacing:.02em}
+.promo-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.promo-body .row-btns{margin-top:auto;padding-top:8px}
+.promo.off{opacity:.62}
+.chips-svc{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chips-svc button{border:1px dashed var(--border);background:var(--bg);border-radius:999px;padding:4px 10px;font-size:.78rem;cursor:pointer;color:inherit}
+.env-row{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--border)}
+.env-row .grow{min-width:0}
+.env-row.ok .btn{opacity:.55}
+.logo img{width:100%;height:100%;object-fit:contain;border-radius:inherit;background:#fff;padding:3px}
+.logo-edit{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo-prev{width:110px;height:110px;border-radius:18px;border:1px dashed var(--border);display:grid;place-items:center;background:#fff;overflow:hidden;color:var(--muted);font-size:.8rem;text-align:center}
+.logo-prev img{max-width:92%;max-height:92%;object-fit:contain}
 .plans{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
 .plan{border:1px solid var(--border);border-radius:var(--radius);padding:14px;background:#fff;border-left:5px solid var(--c);display:flex;flex-direction:column;gap:8px}
 .bar{height:8px;border-radius:99px;background:var(--bg);overflow:hidden}
@@ -379,6 +397,7 @@ a.btn{text-decoration:none}
     <section class="view" id="v-servicios" hidden></section>
     <section class="view" id="v-tratamientos" hidden></section>
     <section class="view" id="v-productos" hidden></section>
+    <section class="view" id="v-promos" hidden></section>
     <section class="view" id="v-reportes" hidden></section>
     <section class="view" id="v-usuarios" hidden></section>
     <section class="view" id="v-ajustes" hidden></section>
@@ -449,13 +468,14 @@ const SCHEMA = {
   VentaDetalle:      ['id','ventaId','tipo','refId','descripcion','cantidad','precio','total'],
   Gastos:            ['id','fechaGasto','categoria','detalle','proveedor','monto','metodo','usuarioId','nota','anulado','creado'],
   Distribuciones:    ['id','mes','tipo','destino','detalle','monto','usuarioId','nota','anulado','creado'],
+  Promociones:       ['id','titulo','tipo','descuento','precio','precioAntes','incluye','descripcion','desde','hasta','condiciones','activo','creado'],
   Config:            ['clave','valor']
 };
-const PREFIJO = { Usuarios:'U', Clientes:'C', Servicios:'S', Tratamientos:'T', PlanesTratamiento:'P', Productos:'R', Citas:'A', Ventas:'V', VentaDetalle:'D', Gastos:'G', Distribuciones:'Q' };
-const NUMS = new Set(['duracion','precio','sesiones','intervaloDias','sesionesTotales','sesionesUsadas','pagado','costo','stock','stockMin','subtotal','descuento','isv','total','cantidad','monto']);
+const PREFIJO = { Usuarios:'U', Clientes:'C', Servicios:'S', Tratamientos:'T', PlanesTratamiento:'P', Productos:'R', Citas:'A', Ventas:'V', VentaDetalle:'D', Gastos:'G', Distribuciones:'Q', Promociones:'O' };
+const NUMS = new Set(['duracion','precio','sesiones','intervaloDias','sesionesTotales','sesionesUsadas','pagado','costo','stock','stockMin','subtotal','descuento','isv','total','cantidad','monto','precioAntes']);
 const BOOLS = new Set(['activo','anulada','anulado']);
-const SOLO_FECHA = new Set(['cumpleanos','fechaInicio','fechaGasto']);
-const TEXTO = new Set(['telefono','codigo','inicio','fin','fecha','fechaInicio','cumpleanos','creado','valor','fechaGasto','mes']);
+const SOLO_FECHA = new Set(['cumpleanos','fechaInicio','fechaGasto','desde','hasta']);
+const TEXTO = new Set(['telefono','codigo','inicio','fin','fecha','fechaInicio','cumpleanos','creado','valor','fechaGasto','mes','desde','hasta']);
 const ESTADOS = ['pendiente','confirmada','en_proceso','completada','cancelada','no_asistio'];
 const NO_OCUPA = ['cancelada','no_asistio'];
 const ROLES = ['admin','recepcion','estilista'];
@@ -465,7 +485,7 @@ const CONFIG_DEF = {
   moneda: 'L', isv: '0.15', preciosConISV: 'si',
   apertura: '08:00', cierre: '19:00', intervalo: '15',
   mensajeRecibo: '¡Gracias por tu visita!',
-  tema: 'vino',
+  tema: 'vino', logo: '',
   mensajeWA: 'Hola {cliente} 👋, te recordamos tu cita en {salon} el {fecha} a las {hora} para {servicio}. ¡Te esperamos!'
 };
 
@@ -474,7 +494,8 @@ const ESCRITURA = {
   PlanesTratamiento: ['admin','recepcion'],
   Servicios: ['admin'],
   Tratamientos: ['admin'],
-  Productos: ['admin']
+  Productos: ['admin'],
+  Promociones: ['admin','recepcion']
 };
 
 /* ===================== ENTRADA HTTP ===================== */
@@ -532,6 +553,7 @@ function route_(req) {
     case 'historial':       return historial_(u);
     case 'guardarDistribucion': return lock_(() => guardarDistribucion_(u, d));
     case 'anularDistribucion':  return lock_(() => anularDistribucion_(u, d));
+    case 'promociones':     req_(u, ['admin','recepcion']); return rows_('Promociones');
     default: throw new Error('Acción no válida: ' + a);
   }
 }
@@ -758,6 +780,7 @@ function config_() {
 }
 
 function guardarConfig_(reg) {
+  if (reg && reg.logo && String(reg.logo).length > 48000) throw new Error('El logo es muy pesado. Usa una imagen más sencilla o más pequeña.');
   const s = sh_('Config');
   const actual = Object.assign(config_(), reg || {});
   const vals = Object.keys(actual).map(k => [k, String(actual[k])]);
@@ -1012,7 +1035,7 @@ function guardar_(u, d) {
 
 function eliminar_(u, d) {
   req_(u, ['admin']);
-  const permitidas = ['Clientes','Servicios','Tratamientos','Productos','PlanesTratamiento','Citas'];
+  const permitidas = ['Clientes','Servicios','Tratamientos','Productos','PlanesTratamiento','Citas','Promociones'];
   if (permitidas.indexOf(d.entidad) < 0) throw new Error('No se puede eliminar este tipo de registro');
   if (d.entidad === 'Citas') {
     const c = rows_('Citas').find(x => x.id === d.id);
@@ -1612,6 +1635,7 @@ const NAV = [
   { id: 'servicios', t: 'Servicios', i: 'cut', roles: ['admin', 'recepcion'] },
   { id: 'tratamientos', t: 'Tratamientos', i: 'star', roles: ['admin', 'recepcion'] },
   { id: 'productos', t: 'Productos', i: 'box', roles: ['admin', 'recepcion'] },
+  { id: 'promos', t: 'Promociones', i: 'gift', roles: ['admin', 'recepcion'] },
   { id: 'reportes', t: 'Reportes', i: 'chart', roles: ['admin', 'recepcion'] },
   { id: 'usuarios', t: 'Usuarios', i: 'lock', roles: ['admin'] },
   { id: 'ajustes', t: 'Ajustes', i: 'cog', roles: TODOS }
@@ -1634,6 +1658,7 @@ const ICONS = {
   out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
   refresh: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
   print: '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+  gift: '<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
   trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'
 };
 const ico = n => `<svg class="i" viewBox="0 0 24 24">${ICONS[n] || ''}</svg>`;
@@ -1780,12 +1805,20 @@ function mostrarVencida(info) {
       : '<p class="muted sm">Comunícate con quien te instaló el sistema para activarlo.</p>'}
     ${MODO_CUENTAS ? '<button class="btn ghost l-alt" type="button" onclick="location.reload()">Ingresar con otra cuenta</button><p class="l-pie">Software creado por José Vicdonio Molina · WhatsApp <a href="https://wa.me/50433130265" target="_blank" rel="noopener">+504 3313-0265</a></p>' : ''}`;
 }
+function pintarLogo() {
+  const src = S.config.logo || '';
+  $$('#nav .logo, #login .logo').forEach(l => {
+    if (!l.dataset.svg) l.dataset.svg = l.innerHTML;
+    l.innerHTML = src ? `<img src="${src}" alt="">` : l.dataset.svg;
+  });
+}
 function aplicarDatos(d) {
   ['config', 'usuarios', 'clientes', 'servicios', 'tratamientos', 'productos', 'planes', 'gastoCats'].forEach(k => { if (d[k]) S[k] = d[k]; });
   if (d.licencia) S.licencia = d.licencia;
   aplicarTema(S.config.tema || LS.get('salon_tema', 'vino'));
   if (d.usuario) S.user = d.usuario;
   $('#brand-name').textContent = S.config.nombre || 'Salón';
+  if (d.config) { pintarLogo(); try { S.config.logo ? LS.set('salon_logo', S.config.logo) : LS.del('salon_logo'); } catch (e) {} }
   document.title = (S.config.nombre || 'Salón') + ' · Gestión';
 }
 async function recargar(silent) { const d = await api('bootstrap', {}, silent); aplicarDatos(d); try { LS.set(cacheKey(), JSON.stringify(d)); } catch (e) {} }
@@ -1903,7 +1936,17 @@ async function vInicio() {
       ${tel ? `<a class="btn pri" href="https://wa.me/${tel}?text=${encodeURIComponent('Hola, quiero activar el sistema de ' + (S.config.nombre || 'mi salón'))}" target="_blank" rel="noopener">Activar</a>` : ''}</div>`;
   }
   try {
-    const ini = S.inicioPre || await api('inicio');
+    let ini = S.inicioPre;
+    if (!ini) {
+      try { ini = await api('inicio'); }
+      catch (e) {
+        if (!/Acción no válida/.test(e.message)) throw e;
+        // Servidor con una versión anterior de Code.gs: se arma Inicio con las consultas de siempre
+        const hasta = addDias(h, 7);
+        ini = { citas: await api('citas', { desde: h + 'T00:00', hasta: hasta + 'T23:59' }), dash: null, aviso: null };
+        if (puede('admin') && !S.avisoServidor) { S.avisoServidor = 1; toast('Actualiza el Code.gs de tu Apps Script (Nueva versión) para tener todas las funciones', 'error'); }
+      }
+    }
     S.inicioPre = null;
     const citas = ini.citas, dash = ini.dash;
     guardarCache(citas);
@@ -2713,6 +2756,10 @@ function vAjustes() {
       <div style="margin-top:14px"><button class="btn pri" id="cf-save">Guardar ajustes</button></div></section>` : ''}
     <div class="stack">${puede('admin') ? `<section class="card"><h3>Colores del sistema</h3><p class="muted sm" style="margin:-4px 0 12px">Se aplican a todo el equipo y a las imágenes que reciben tus clientes.</p>
       <div class="temas">${TEMAS.map(t => `<button type="button" class="tema ${t.id === S.tema ? 'on' : ''}" data-tema="${t.id}" style="--t1:${t.img[0]};--t2:${t.img[1]};--t3:${t.img[2]};--ta:${t.oro}"><span class="sw"><i></i></span>${t.n}</button>`).join('')}</div></section>` : ''}
+    ${puede('admin') ? `<section class="card"><h3>Logo del salón</h3><p class="muted sm" style="margin:-4px 0 12px">Aparece en el menú, la pantalla de ingreso y en las imágenes de citas, comprobantes y promociones.</p>
+      <div class="logo-edit"><div class="logo-prev" id="lg-prev">${c.logo ? `<img src="${c.logo}" alt="Logo">` : 'Sin logo'}</div>
+      <div class="row-btns"><label class="btn pri" style="cursor:pointer">${c.logo ? 'Cambiar logo' : 'Subir logo'}<input type="file" id="lg-file" accept="image/*" hidden></label>${c.logo ? '<button class="btn ghost" id="lg-del" type="button">Quitar</button>' : ''}</div>
+      <p class="muted sm" style="flex-basis:100%;margin:0">Mejor en PNG con fondo transparente o blanco.</p></div></section>` : ''}
     <section class="card"><h3>${MODO_CUENTAS ? 'Mi PIN' : 'Mi contraseña'}</h3><form class="form" onsubmit="return false">${(() => { const pa = MODO_CUENTAS ? ' inputmode="numeric" maxlength="6"' : ''; return `
       <label class="f full">${MODO_CUENTAS ? 'PIN actual' : 'Contraseña actual'}<input class="input" type="password" id="pw-a"${pa} autocomplete="current-password"></label>
       <label class="f">${MODO_CUENTAS ? 'Nuevo PIN' : 'Nueva'}<input class="input" type="password" id="pw-n"${pa} autocomplete="new-password"></label>
@@ -2746,6 +2793,18 @@ function vAjustes() {
     try { S.config = await api('guardar', { entidad: 'Config', registro: { tema: id } }, true); toast('Colores actualizados para todo el equipo', 'ok'); }
     catch (e) { aplicarTema(prev); $$('#v-ajustes [data-tema]').forEach(x => x.classList.toggle('on', x.dataset.tema === prev)); err(e); }
   });
+  if ($('#lg-file')) $('#lg-file').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const logo = await reducirLogo(f);
+      S.config = await api('guardar', { entidad: 'Config', registro: { logo } });
+      aplicarDatos({ config: S.config }); toast('Logo guardado', 'ok'); vAjustes();
+    } catch (x) { err(x); }
+  };
+  if ($('#lg-del')) $('#lg-del').onclick = async () => {
+    if (!(await confirmar('¿Quitar el logo del salón?', { si: 'Quitar' }))) return;
+    try { S.config = await api('guardar', { entidad: 'Config', registro: { logo: '' } }); aplicarDatos({ config: S.config }); toast('Logo quitado', 'ok'); vAjustes(); } catch (x) { err(x); }
+  };
   if ($('#srv')) $('#srv').onclick = DEMO.on ? menuDemo : configServidor;
   if ($('#sync')) $('#sync').onclick = async () => { try { await recargar(); toast('Datos actualizados', 'ok'); } catch (e) { err(e); } };
 }
@@ -2765,6 +2824,7 @@ function brillo(ctx, x, y, s, a) {
   ctx.fill(); ctx.restore();
 }
 async function dibujarTarjeta(c) {
+  await logoListo();
   try { await Promise.all(['700 80px "Playfair Display"', '600 30px "Playfair Display"', '400 28px Inter', '600 28px Inter', '700 28px Inter'].map(f => document.fonts.load(f))); } catch (e) {}
   const planT = c.planId ? byId(S.planes, c.planId) : null, nSvc = svcsCita(c).length;
   const med = document.createElement('canvas').getContext('2d');
@@ -2879,16 +2939,39 @@ function fondoMarca(x, W, H) {
   x.strokeStyle = T.oro; x.globalAlpha = .9; x.lineWidth = 2; rr(x, 36, 36, W - 72, H - 72, 28); x.stroke();
   x.globalAlpha = .4; x.lineWidth = 1; rr(x, 50, 50, W - 100, H - 100, 22); x.stroke(); x.globalAlpha = 1;
 }
+async function logoListo() {
+  const src = S.config.logo;
+  if (!src) return null;
+  if (S.logoImg && S.logoImg.src === src && S.logoImg.complete) return S.logoImg;
+  const im = new Image();
+  await new Promise(ok => { im.onload = ok; im.onerror = ok; im.src = src; });
+  S.logoImg = im; return im;
+}
+// Logo del salón en una placa blanca; si no hay logo, el emblema de tijeras. Devuelve la mitad de su alto.
 function logoMarca(x, cx, cy) {
+  const im = S.logoImg;
+  if (S.config.logo && im && im.src === S.config.logo && im.naturalWidth) {
+    const ar = im.naturalWidth / im.naturalHeight;
+    let h = 104, w = h * ar;
+    if (w > 300) { w = 300; h = w / ar; }
+    const pw = w + 40, ph = h + 36;
+    x.save(); x.shadowColor = 'rgba(0,0,0,.32)'; x.shadowBlur = 30; x.shadowOffsetY = 10;
+    x.fillStyle = '#ffffff'; rr(x, cx - pw / 2, cy - ph / 2, pw, ph, 26); x.fill(); x.restore();
+    x.save(); x.strokeStyle = temaActual().oro; x.lineWidth = 3; rr(x, cx - pw / 2, cy - ph / 2, pw, ph, 26); x.stroke(); x.restore();
+    x.drawImage(im, cx - w / 2, cy - h / 2, w, h);
+    return ph / 2;
+  }
   x.save(); x.translate(cx, cy); x.strokeStyle = temaActual().oro; x.lineWidth = 2;
   x.beginPath(); x.arc(0, 0, 50, 0, Math.PI * 2); x.stroke();
   x.lineWidth = 3.2; x.lineCap = 'round'; x.scale(2.2, 2.2); x.translate(-12, -12);
   x.beginPath(); x.arc(6, 6, 3, 0, Math.PI * 2); x.stroke(); x.beginPath(); x.arc(6, 18, 3, 0, Math.PI * 2); x.stroke();
   x.beginPath(); x.moveTo(20, 4); x.lineTo(8.12, 15.88); x.moveTo(14.47, 14.48); x.lineTo(20, 20); x.moveTo(8.12, 8.12); x.lineTo(12, 12); x.stroke();
   x.restore();
+  return 52;
 }
 function espaciado(x, px) { try { x.letterSpacing = px + 'px'; } catch (e) {} }
 async function dibujarRecibo(v, det, recibido) {
+  await logoListo();
   try { await Promise.all(['700 80px "Playfair Display"', 'italic 600 40px "Playfair Display"', '400 28px Inter', '600 28px Inter', '700 28px Inter'].map(f => document.fonts.load(f))); } catch (e) {}
   const SERIF = '"Playfair Display", Georgia, serif', SANS = 'Inter, "Segoe UI", Arial, sans-serif';
   const T = temaActual(), GOLD = T.oro, PLUM = T.d, INK = '#2b1d24', MUTED = '#8a7680', cfg = S.config;
@@ -3637,7 +3720,213 @@ function sembrarDemo(B) {
   B.venta_(admin, { metodo: 'Tarjeta', items: [{ tipo: 'servicio', refId: sv('Manicure').id, descripcion: 'Manicure', cantidad: 1, precio: 250 }] });
 }
 
-const VISTAS = { inicio: vInicio, agenda: vAgenda, ventas: vVentas, gastos: vGastos, clientes: vClientes, servicios: vServicios, tratamientos: vTratamientos, productos: vProductos, reportes: vReportes, usuarios: vUsuarios, ajustes: vAjustes };
+const VISTAS = { inicio: vInicio, agenda: vAgenda, ventas: vVentas, gastos: vGastos, clientes: vClientes, servicios: vServicios, tratamientos: vTratamientos, productos: vProductos, promos: vPromos, reportes: vReportes, usuarios: vUsuarios, ajustes: vAjustes };
+
+/* ===================== LOGO ===================== */
+// Achica el logo para guardarlo en la hoja (una celda admite ~50.000 caracteres)
+function reducirLogo(file) {
+  return new Promise((ok, mal) => {
+    if (!/^image\//.test(file.type)) return mal(new Error('Elige una imagen (PNG o JPG)'));
+    const r = new FileReader();
+    r.onerror = () => mal(new Error('No se pudo leer la imagen'));
+    r.onload = () => {
+      const im = new Image();
+      im.onerror = () => mal(new Error('No se pudo abrir la imagen'));
+      im.onload = () => {
+        for (const lado of [360, 300, 240, 200, 160, 128]) {
+          const k = Math.min(1, lado / Math.max(im.width, im.height)), w = Math.max(1, Math.round(im.width * k)), hh = Math.max(1, Math.round(im.height * k));
+          const cv = document.createElement('canvas'); cv.width = w; cv.height = hh;
+          const x = cv.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(im, 0, 0, w, hh);
+          for (const [tipo, q] of [['image/png'], ['image/webp', .9], ['image/jpeg', .88]]) {
+            if (tipo === 'image/jpeg') { const c2 = document.createElement('canvas'); c2.width = w; c2.height = hh; const y = c2.getContext('2d'); y.fillStyle = '#fff'; y.fillRect(0, 0, w, hh); y.drawImage(cv, 0, 0); const u = c2.toDataURL(tipo, q); if (u.length < 45000) return ok(u); continue; }
+            const u = cv.toDataURL(tipo, q);
+            if (u.indexOf('data:' + tipo) === 0 && u.length < 45000) return ok(u);
+          }
+        }
+        mal(new Error('El logo es muy pesado. Prueba con una imagen más sencilla.'));
+      };
+      im.src = r.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+
+/* ===================== PROMOCIONES ===================== */
+const TIPOS_PROMO = { porcentaje: 'Descuento en %', precio: 'Precio especial', '2x1': '2 x 1', regalo: 'Regalo / gratis' };
+const COL_PROMO = { Vigente: '#2f9e6b', 'Próxima': '#3b82c4', Pausada: '#9aa0a6', Vencida: '#c0392b' };
+const fCorta = iso => parseLocal(iso).toLocaleDateString('es-HN', { day: 'numeric', month: 'long' });
+function estadoPromo(p) {
+  const h = hoy();
+  if (p.hasta && h > p.hasta) return 'Vencida';
+  if (!p.activo) return 'Pausada';
+  if (p.desde && h < p.desde) return 'Próxima';
+  return 'Vigente';
+}
+function ofertaPromo(p) {
+  if (p.tipo === 'porcentaje') return { g: r2(p.descuento) + '%', c: 'de descuento' };
+  if (p.tipo === 'precio') return { g: money(p.precio).replace('.00', ''), c: num(p.precioAntes) > 0 ? 'antes ' + money(p.precioAntes).replace('.00', '') : 'precio especial', antes: num(p.precioAntes) > 0 };
+  if (p.tipo === '2x1') return { g: '2 x 1', c: 'llévate dos, paga uno' };
+  return { g: 'Gratis', c: 'de regalo para ti' };
+}
+function vigenciaPromo(p) {
+  if (p.desde && p.hasta) return p.desde.slice(0, 7) === p.hasta.slice(0, 7) ? `Válida del ${parseLocal(p.desde).getDate()} al ${fCorta(p.hasta)}` : `Válida del ${fCorta(p.desde)} al ${fCorta(p.hasta)}`;
+  if (p.hasta) return 'Válida hasta el ' + fCorta(p.hasta);
+  if (p.desde) return 'Desde el ' + fCorta(p.desde);
+  return 'Por tiempo limitado';
+}
+async function vPromos() {
+  const el = $('#v-promos');
+  el.innerHTML = `<div class="toolbar"><p class="muted sm grow" style="margin:0">Crea promociones y compártelas como una tarjeta elegante por WhatsApp, en tus estados o en redes sociales.</p>
+    <button class="btn pri" id="pr-new">${ico('plus')} Nueva promoción</button></div><div class="promos" id="pr-list">${S.promos ? '' : '<div class="empty" style="grid-column:1/-1">Cargando…</div>'}</div>`;
+  $('#pr-new').onclick = () => editarPromo(null);
+  if (S.promos) pintarPromos();
+  try { S.promos = await api('promociones', {}, !!S.promos); } catch (e) { err(e); S.promos = S.promos || []; }
+  pintarPromos();
+}
+function pintarPromos() {
+  const box = $('#pr-list'); if (!box) return;
+  const orden = { Vigente: 0, 'Próxima': 1, Pausada: 2, Vencida: 3 };
+  const l = (S.promos || []).slice().sort((a, b) => orden[estadoPromo(a)] - orden[estadoPromo(b)] || (a.creado < b.creado ? 1 : -1));
+  box.innerHTML = l.length ? l.map(p => {
+    const o = ofertaPromo(p), e = estadoPromo(p);
+    return `<div class="promo ${e === 'Vencida' || e === 'Pausada' ? 'off' : ''}"><div class="promo-top"><div class="promo-of">${esc(o.g)}<small>${o.antes ? `<s>${esc(o.c)}</s>` : esc(o.c)}</small></div><span class="badge" style="--b:${COL_PROMO[e]}">${e}</span></div>
+      <div class="promo-body"><b>${esc(p.titulo)}</b>${p.incluye ? `<div class="sm">${esc(p.incluye)}</div>` : ''}<div class="sm muted">${esc(vigenciaPromo(p))}</div>
+      <div class="row-btns"><button class="btn sm pri" data-tj="${esc(p.id)}">Ver tarjeta</button>${e !== 'Vencida' ? `<button class="btn sm wa" data-env="${esc(p.id)}">Enviar a clientes</button>` : ''}
+      <button class="btn sm ghost" data-ed="${esc(p.id)}">Editar</button>${puede('admin') ? `<button class="btn sm ghost" data-del="${esc(p.id)}" title="Eliminar">${ico('trash')}</button>` : ''}</div></div></div>`;
+  }).join('') : '<div class="empty" style="grid-column:1/-1">Todavía no tienes promociones. Toca <b>Nueva promoción</b> para crear la primera.</div>';
+  const P = id => byId(S.promos, id);
+  $$('[data-tj]', box).forEach(b => b.onclick = () => tarjetaPromo(P(b.dataset.tj)));
+  $$('[data-env]', box).forEach(b => b.onclick = () => enviarPromo(P(b.dataset.env)));
+  $$('[data-ed]', box).forEach(b => b.onclick = () => editarPromo(P(b.dataset.ed)));
+  $$('[data-del]', box).forEach(b => b.onclick = async () => {
+    const p = P(b.dataset.del);
+    if (!(await confirmar(`¿Eliminar la promoción «${p.titulo}»?`, { si: 'Eliminar', peligro: 1 }))) return;
+    try { await api('eliminar', { entidad: 'Promociones', id: p.id }); S.promos = S.promos.filter(x => x.id !== p.id); pintarPromos(); toast('Promoción eliminada', 'ok'); } catch (e) { err(e); }
+  });
+}
+function editarPromo(p) {
+  const nuevo = !p;
+  p = p || { tipo: 'porcentaje', activo: true, desde: hoy(), hasta: addDias(hoy(), 14) };
+  const svcs = S.servicios.filter(s => s.activo).map(s => s.nombre).concat(S.tratamientos.filter(t => t.activo).map(t => t.nombre));
+  modal(nuevo ? 'Nueva promoción' : 'Editar promoción', `<form class="form" onsubmit="return false">
+    <label class="f full">Título de la promoción *<input class="input" id="po-tit" maxlength="60" value="${esc(p.titulo || '')}" placeholder="Ej. Mes de la mamá"></label>
+    <label class="f">Tipo de oferta<select class="input" id="po-tipo">${Object.keys(TIPOS_PROMO).map(k => `<option value="${k}" ${k === p.tipo ? 'selected' : ''}>${TIPOS_PROMO[k]}</option>`).join('')}</select></label>
+    <label class="f" data-po="porcentaje">Descuento (%) *<input class="input" id="po-desc" type="number" min="1" max="100" inputmode="decimal" value="${esc(p.descuento || '')}" placeholder="20"></label>
+    <label class="f" data-po="precio">Precio especial *<input class="input" id="po-precio" type="number" min="0" step="0.01" inputmode="decimal" value="${esc(p.precio || '')}"></label>
+    <label class="f" data-po="precio">Precio normal (se muestra tachado)<input class="input" id="po-antes" type="number" min="0" step="0.01" inputmode="decimal" value="${esc(p.precioAntes || '')}"></label>
+    <label class="f full">¿En qué aplica?<input class="input" id="po-inc" maxlength="120" value="${esc(p.incluye || '')}" placeholder="Ej. Manicure + Pedicure">
+      <div class="chips-svc">${svcs.slice(0, 14).map(n => `<button type="button" data-sv="${esc(n)}">+ ${esc(n)}</button>`).join('')}</div></label>
+    <label class="f full">Descripción<textarea class="input" id="po-des" rows="2" maxlength="200" placeholder="Un mensaje corto y atractivo">${esc(p.descripcion || '')}</textarea></label>
+    <label class="f">Válida desde<input class="input" id="po-ini" type="date" value="${esc(p.desde || '')}"></label>
+    <label class="f">Válida hasta<input class="input" id="po-fin" type="date" value="${esc(p.hasta || '')}"></label>
+    <label class="f full">Condiciones (letra pequeña)<input class="input" id="po-cond" maxlength="140" value="${esc(p.condiciones || '')}" placeholder="Ej. Previa cita. No acumulable con otras promociones."></label>
+    <label class="f chk full"><input type="checkbox" id="po-act" ${p.activo ? 'checked' : ''}> Activa</label></form>`, [
+    { t: 'Guardar', cls: '', fn: () => guardar(false) },
+    { t: 'Guardar y ver tarjeta', cls: 'pri', fn: () => guardar(true) }
+  ]);
+  const tipo = () => $('#po-tipo').value;
+  const ver = () => $$('[data-po]').forEach(l => { l.hidden = l.dataset.po !== tipo(); });
+  $('#po-tipo').onchange = ver; ver();
+  $$('[data-sv]').forEach(b => b.onclick = () => { const i = $('#po-inc'), v = i.value.trim(); if (!v.split(/\s*[+,]\s*/).includes(b.dataset.sv)) i.value = v ? v + ' + ' + b.dataset.sv : b.dataset.sv; });
+  async function guardar(verTarjeta) {
+    const reg = { id: p.id, titulo: $('#po-tit').value.trim(), tipo: tipo(), descuento: num($('#po-desc').value), precio: num($('#po-precio').value), precioAntes: num($('#po-antes').value),
+      incluye: $('#po-inc').value.trim(), descripcion: $('#po-des').value.trim(), desde: $('#po-ini').value, hasta: $('#po-fin').value, condiciones: $('#po-cond').value.trim(), activo: $('#po-act').checked };
+    if (!reg.titulo) throw new Error('Escribe el título de la promoción');
+    if (reg.tipo === 'porcentaje' && !(reg.descuento > 0 && reg.descuento <= 100)) throw new Error('El descuento debe ser de 1 a 100%');
+    if (reg.tipo === 'precio' && !(reg.precio > 0)) throw new Error('Escribe el precio especial');
+    if (reg.tipo === 'precio' && reg.precioAntes && reg.precioAntes <= reg.precio) throw new Error('El precio normal debe ser mayor que el especial');
+    if (reg.desde && reg.hasta && reg.hasta < reg.desde) throw new Error('La fecha final debe ser igual o posterior a la inicial');
+    const g = await api('guardar', { entidad: 'Promociones', registro: reg });
+    S.promos = (S.promos || []).filter(x => x.id !== g.id).concat([g]);
+    cerrarModal(); toast('Promoción guardada', 'ok');
+    if (S.vista === 'promos') pintarPromos();
+    if (verTarjeta) tarjetaPromo(g);
+  }
+}
+function textoPromo(p, nombre) {
+  const o = ofertaPromo(p), cfg = S.config;
+  const of = p.tipo === 'porcentaje' ? `✨ ${o.g} de descuento` : p.tipo === 'precio' ? `✨ Precio especial: ${o.g}${o.antes ? ' (' + o.c + ')' : ''}` : p.tipo === '2x1' ? '✨ 2 x 1: llévate dos, paga uno' : '🎁 ¡De regalo para ti!';
+  return [`Hola${nombre ? ' ' + nombre : ''} ✨`, '', `En *${cfg.nombre || 'nuestro salón'}* tenemos una promoción especial para ti:`, '', `🌸 *${p.titulo}*`, of,
+    p.incluye ? '💅 ' + p.incluye : '', p.descripcion || '', '📅 ' + vigenciaPromo(p), p.condiciones ? '_' + p.condiciones + '_' : '', '', '¿Te agendo una cita? 😊'].filter((l, i, a) => l !== '' || (a[i - 1] !== '' && i > 0)).join('\n');
+}
+async function tarjetaPromo(p) {
+  let cv; try { cv = await dibujarPromo(p); } catch (e) { return err(e); }
+  const slug = String(p.titulo).toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'promo';
+  modalImagen({ titulo: 'Tarjeta de la promoción', canvas: cv, archivo: `promo-${slug}.png`, alt: 'Promoción ' + p.titulo,
+    extra: estadoPromo(p) !== 'Vencida' ? [{ t: 'Enviar a clientes', cls: 'wa', fn: () => enviarPromo(p) }] : [] });
+}
+function enviarPromo(p) {
+  const key = 'promo_env_' + p.id;
+  let env = []; try { env = JSON.parse(LS.get(key, '[]')) || []; } catch (e) { env = []; }
+  const cls = S.clientes.filter(c => String(c.telefono || '').replace(/\D/g, '').length >= 8).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  modal('Enviar «' + p.titulo + '»', `<p class="muted sm" style="margin-top:0">1) Toca <b>Ver tarjeta → Compartir</b> y envíala a tus contactos, grupos o estado de WhatsApp.<br>2) O escríbele a cada cliente con el mensaje ya preparado:</p>
+    <input class="input" id="en-q" placeholder="Buscar cliente…" autocomplete="off"><div class="muted sm" id="en-n" style="margin:8px 0 2px"></div><div id="en-list"></div>`, [
+    { t: 'Ver tarjeta', cls: '', fn: () => tarjetaPromo(p) }
+  ], { wide: false });
+  const pintar = () => {
+    const q = $('#en-q').value.toLowerCase();
+    const l = cls.filter(c => !q || (c.nombre + ' ' + c.telefono).toLowerCase().includes(q));
+    $('#en-n').textContent = `${env.length} de ${cls.length} clientes con WhatsApp ya recibieron el mensaje`;
+    $('#en-list').innerHTML = l.length ? l.map(c => `<div class="env-row ${env.includes(c.id) ? 'ok' : ''}"><div class="grow"><b>${esc(c.nombre)}</b><div class="muted sm">${esc(c.telefono)}${env.includes(c.id) ? ' · ✓ enviado' : ''}</div></div>
+      <a class="btn sm wa" data-c="${esc(c.id)}" href="${esc(waTexto(c, textoPromo(p, c.nombre.split(' ')[0])))}" target="_blank" rel="noopener">${env.includes(c.id) ? 'Reenviar' : 'Enviar'}</a></div>`).join('')
+      : '<div class="empty">No hay clientes con WhatsApp registrado.</div>';
+    $$('#en-list [data-c]').forEach(a => a.addEventListener('click', () => { if (!env.includes(a.dataset.c)) { env.push(a.dataset.c); LS.set(key, JSON.stringify(env)); } setTimeout(pintar, 300); }));
+  };
+  $('#en-q').oninput = pintar; pintar();
+}
+async function dibujarPromo(p) {
+  await logoListo();
+  try { await Promise.all(['700 80px "Playfair Display"', 'italic 600 40px "Playfair Display"', 'italic 700 80px "Playfair Display"', '400 28px Inter', '600 28px Inter', '700 28px Inter'].map(f => document.fonts.load(f))); } catch (e) {}
+  const SERIF = '"Playfair Display", Georgia, serif', SANS = 'Inter, "Segoe UI", Arial, sans-serif';
+  const T = temaActual(), GOLD = T.oro, cfg = S.config, o = ofertaPromo(p);
+  const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const x = cv.getContext('2d');
+  fondoMarca(x, W, H);
+  const media = logoMarca(x, W / 2, 158);
+  x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+  let y = 158 + media + 62;
+  x.fillStyle = '#ffffff'; x.font = `700 40px ${SERIF}`;
+  x.fillText(lineas(x, cfg.nombre || 'Salón de Belleza', 860)[0], W / 2, y);
+  y += 54; x.fillStyle = GOLD; x.font = `600 22px ${SANS}`; espaciado(x, 8); x.fillText('PROMOCIÓN ESPECIAL', W / 2, y); espaciado(x, 0);
+  // Título
+  x.fillStyle = '#ffffff'; x.font = `italic 700 76px ${SERIF}`;
+  let tl = lineas(x, p.titulo, 880);
+  if (tl.length > 2) { x.font = `italic 700 60px ${SERIF}`; tl = lineas(x, p.titulo, 900).slice(0, 2); }
+  const lh = tl.length > 1 ? 74 : 0;
+  y += 96; tl.forEach((l, i) => x.fillText(l, W / 2, y + i * lh)); y += lh * (tl.length - 1);
+  // Medalla con la oferta
+  const R = 175, cy = y + 52 + R;
+  x.save(); x.shadowColor = 'rgba(0,0,0,.38)'; x.shadowBlur = 50; x.shadowOffsetY = 18;
+  const gm = x.createLinearGradient(W / 2 - R, cy - R, W / 2 + R, cy + R); gm.addColorStop(0, '#fff7ea'); gm.addColorStop(.55, GOLD); gm.addColorStop(1, hexA(GOLD, 1));
+  x.fillStyle = gm; x.beginPath(); x.arc(W / 2, cy, R, 0, Math.PI * 2); x.fill(); x.restore();
+  x.strokeStyle = 'rgba(255,255,255,.8)'; x.lineWidth = 3; x.beginPath(); x.arc(W / 2, cy, R - 16, 0, Math.PI * 2); x.stroke();
+  x.strokeStyle = hexA(T.d, .35); x.lineWidth = 1.5; x.setLineDash([4, 8]); x.beginPath(); x.arc(W / 2, cy, R - 30, 0, Math.PI * 2); x.stroke(); x.setLineDash([]);
+  let fs = 128; x.font = `700 ${fs}px ${SERIF}`;
+  while (x.measureText(o.g).width > 2 * R - 90 && fs > 54) { fs -= 6; x.font = `700 ${fs}px ${SERIF}`; }
+  x.fillStyle = T.d; x.fillText(o.g, W / 2, cy + fs * .3);
+  x.font = `600 28px ${SANS}`; x.fillStyle = hexA(T.d, .85);
+  const cy2 = cy + fs * .3 + 50;
+  x.fillText(o.c, W / 2, cy2);
+  if (o.antes) { const w2 = x.measureText(o.c).width; x.strokeStyle = hexA(T.d, .8); x.lineWidth = 3; x.beginPath(); x.moveTo(W / 2 - w2 / 2 - 4, cy2 - 9); x.lineTo(W / 2 + w2 / 2 + 4, cy2 - 9); x.stroke(); }
+  brillo(x, W / 2 + R - 10, cy - R + 30, 22, .95); brillo(x, W / 2 - R + 14, cy + R - 50, 14, .8);
+  // Detalle
+  y = cy + R + 74;
+  if (p.incluye) { x.fillStyle = '#ffffff'; x.font = `600 38px ${SANS}`; lineas(x, p.incluye, 880).slice(0, 2).forEach(l => { x.fillText(l, W / 2, y); y += 50; }); }
+  if (p.descripcion) { y += 4; x.fillStyle = 'rgba(255,255,255,.86)'; x.font = `400 28px ${SANS}`; lineas(x, p.descripcion, 860).slice(0, 2).forEach(l => { x.fillText(l, W / 2, y); y += 40; }); }
+  // Vigencia
+  const vt = vigenciaPromo(p); x.font = `600 28px ${SANS}`;
+  const vw = x.measureText(vt).width + 70, vy = Math.max(y + 20, H - 330);
+  x.strokeStyle = GOLD; x.lineWidth = 2; rr(x, W / 2 - vw / 2, vy, vw, 64, 32); x.stroke();
+  x.fillStyle = GOLD; x.fillText(vt, W / 2, vy + 42);
+  // Pie
+  let fy = vy + 128;
+  x.fillStyle = '#ffffff'; x.font = `italic 600 40px ${SERIF}`; x.fillText('¡Reserva tu cita!', W / 2, fy);
+  fy += 50;
+  const cont = [cfg.telefono ? 'WhatsApp ' + cfg.telefono : '', cfg.direccion ? lineas(x, cfg.direccion, 500)[0] : ''].filter(Boolean).join('  ·  ');
+  if (cont) { x.fillStyle = 'rgba(255,255,255,.88)'; x.font = `400 26px ${SANS}`; x.fillText(lineas(x, cont, 900)[0], W / 2, fy); }
+  if (p.condiciones) { x.fillStyle = 'rgba(255,255,255,.62)'; x.font = `400 20px ${SANS}`; x.fillText(lineas(x, p.condiciones, 900)[0], W / 2, H - 74); }
+  return cv;
+}
 
 /* ===================== APP ANDROID (APK) =====================
    Dentro del APK no existe el menú de compartir del navegador: se usa el puente SalonApp */
@@ -3684,6 +3973,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try { if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
   $('#l-salon').textContent = LS.get('salon_nombre', '') || 'Salón de Belleza';
   if (MODO_CUENTAS) pintarCuentas();
+  { const lg = LS.get('salon_logo', ''); if (lg) { S.config.logo = lg; pintarLogo(); } }
   $('#f-login').onsubmit = ingresar;
   $('#f-reg').onsubmit = registrarse;
   $('#l-alt').onclick = () => { S.lmodo = S.lmodo === 'reg' ? 'ing' : 'reg'; pintarLogin(); };
