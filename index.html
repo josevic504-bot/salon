@@ -223,6 +223,15 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .promo-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
 .promo-body .row-btns{margin-top:auto;padding-top:8px}
 .promo.off{opacity:.62}
+.temps{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px;margin-top:6px}
+.temp{border:2px solid transparent;border-radius:12px;padding:0;background:none;cursor:pointer;text-align:center;font-size:.72rem;color:inherit;line-height:1.2}
+.temp i{display:grid;place-items:center;height:46px;border-radius:10px;font-style:normal;font-size:1.35rem;background:linear-gradient(135deg,var(--t1),var(--t2),var(--t3));margin-bottom:4px;box-shadow:inset 0 0 0 2px var(--ta)}
+.temp.on{border-color:var(--brand)}.temp.on i{box-shadow:inset 0 0 0 3px #fff}
+.temp span{display:block;padding:0 2px 4px}
+.prox{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.prox button{display:flex;align-items:center;gap:10px;border:1px solid var(--border);background:#fff;border-radius:14px;padding:10px 14px;cursor:pointer;text-align:left;color:inherit;font:inherit}
+.prox button b{display:block;font-size:.9rem}.prox button small{color:var(--muted)}
+.prox .em{font-size:1.6rem}
 .chips-svc{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .chips-svc button{border:1px dashed var(--border);background:var(--bg);border-radius:999px;padding:4px 10px;font-size:.78rem;cursor:pointer;color:inherit}
 .env-row{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--border)}
@@ -468,7 +477,7 @@ const SCHEMA = {
   VentaDetalle:      ['id','ventaId','tipo','refId','descripcion','cantidad','precio','total'],
   Gastos:            ['id','fechaGasto','categoria','detalle','proveedor','monto','metodo','usuarioId','nota','anulado','creado'],
   Distribuciones:    ['id','mes','tipo','destino','detalle','monto','usuarioId','nota','anulado','creado'],
-  Promociones:       ['id','titulo','tipo','descuento','precio','precioAntes','incluye','descripcion','desde','hasta','condiciones','activo','creado'],
+  Promociones:       ['id','titulo','tipo','descuento','precio','precioAntes','incluye','descripcion','desde','hasta','condiciones','activo','creado','temporada'],
   Config:            ['clave','valor']
 };
 const PREFIJO = { Usuarios:'U', Clientes:'C', Servicios:'S', Tratamientos:'T', PlanesTratamiento:'P', Productos:'R', Citas:'A', Ventas:'V', VentaDetalle:'D', Gastos:'G', Distribuciones:'Q', Promociones:'O' };
@@ -1565,7 +1574,7 @@ function instalarSalon_(op) {
    CONFIGURACIÓN: pega aquí la URL /exec de tu App web
    (también se puede configurar desde la pantalla de ingreso)
    ========================================================== */
-const API_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbxA1o1PFmwc0av43L_cnZEQrELXQGgX6JfBNKb-djxZfJkQqRSXa5rEAJUIFWcqviAm/exec';
+const API_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbww1IWK0v3WoJXhtlaZQ_9s5VCxNweHoxNPagL1Z5AhtxDJofvB-b-ITjmuJhI9ta2T/exec';
 // true = cada salón se registra solo (nombre, WhatsApp y PIN) y entra con WhatsApp + PIN
 const MODO_CUENTAS = false;
 const DIAS_PRUEBA_REG = 7;
@@ -3816,7 +3825,7 @@ function vigenciaPromo(p) {
 async function vPromos() {
   const el = $('#v-promos');
   el.innerHTML = `<div class="toolbar"><p class="muted sm grow" style="margin:0">Crea promociones y compártelas como una tarjeta elegante por WhatsApp, en tus estados o en redes sociales.</p>
-    <button class="btn pri" id="pr-new">${ico('plus')} Nueva promoción</button></div><div class="promos" id="pr-list">${S.promos ? '' : '<div class="empty" style="grid-column:1/-1">Cargando…</div>'}</div>`;
+    <button class="btn pri" id="pr-new">${ico('plus')} Nueva promoción</button></div><div id="pr-prox"></div><div class="promos" id="pr-list">${S.promos ? '' : '<div class="empty" style="grid-column:1/-1">Cargando…</div>'}</div>`;
   $('#pr-new').onclick = () => editarPromo(null);
   if (S.promos) pintarPromos();
   try { S.promos = await api('promociones', {}, !!S.promos); } catch (e) { err(e); S.promos = S.promos || []; }
@@ -3824,12 +3833,17 @@ async function vPromos() {
 }
 function pintarPromos() {
   const box = $('#pr-list'); if (!box) return;
+  const yaHay = id => (S.promos || []).some(x => x.temporada === id && estadoPromo(x) !== 'Vencida');
+  const prox = proximasTemporadas(45).filter(x => !yaHay(x.t.id)).slice(0, 3);
+  $('#pr-prox').innerHTML = prox.length ? `<p class="muted sm" style="margin:0 0 8px">Fechas especiales que se acercan:</p><div class="prox">${prox.map(x => `<button type="button" data-px="${x.t.id}"><span class="em">${x.t.e}</span><span><b>${esc(x.t.n)}</b><small>${x.falta === 0 ? 'Es hoy' : x.falta === 1 ? 'Mañana' : 'En ' + x.falta + ' días · ' + fCorta(x.f)} · Crear promoción</small></span></button>`).join('')}</div>` : '';
+  $$('#pr-prox [data-px]').forEach(b => b.onclick = () => { const x = prox.find(y => y.t.id === b.dataset.px); editarPromo(null, { temporada: x.t.id, titulo: x.t.tit, descripcion: x.t.desc, desde: hoy(), hasta: x.f }); });
   const orden = { Vigente: 0, 'Próxima': 1, Pausada: 2, Vencida: 3 };
   const l = (S.promos || []).slice().sort((a, b) => orden[estadoPromo(a)] - orden[estadoPromo(b)] || (a.creado < b.creado ? 1 : -1));
   box.innerHTML = l.length ? l.map(p => {
     const o = ofertaPromo(p), e = estadoPromo(p);
-    return `<div class="promo ${e === 'Vencida' || e === 'Pausada' ? 'off' : ''}"><div class="promo-top"><div class="promo-of">${esc(o.g)}<small>${o.antes ? `<s>${esc(o.c)}</s>` : esc(o.c)}</small></div><span class="badge" style="--b:${COL_PROMO[e]}">${e}</span></div>
-      <div class="promo-body"><b>${esc(p.titulo)}</b>${p.incluye ? `<div class="sm">${esc(p.incluye)}</div>` : ''}<div class="sm muted">${esc(vigenciaPromo(p))}</div>
+    const tp = temporada(p.temporada);
+    return `<div class="promo ${e === 'Vencida' || e === 'Pausada' ? 'off' : ''}"><div class="promo-top"${tp ? ` style="background:linear-gradient(135deg,${tp.bg[0]},${tp.bg[1]},${tp.bg[2]});color:${tp.tinta || '#fff'}"` : ''}><div class="promo-of">${esc(o.g)}<small>${o.antes ? `<s>${esc(o.c)}</s>` : esc(o.c)}</small></div><span class="badge" style="--b:${COL_PROMO[e]}">${e}</span></div>
+      <div class="promo-body"><b>${tp ? tp.e + ' ' : ''}${esc(p.titulo)}</b>${p.incluye ? `<div class="sm">${esc(p.incluye)}</div>` : ''}<div class="sm muted">${esc(vigenciaPromo(p))}</div>
       <div class="row-btns"><button class="btn sm pri" data-tj="${esc(p.id)}">Ver tarjeta</button>${e !== 'Vencida' ? `<button class="btn sm wa" data-env="${esc(p.id)}">Enviar a clientes</button>` : ''}
       <button class="btn sm ghost" data-ed="${esc(p.id)}">Editar</button>${puede('admin') ? `<button class="btn sm ghost" data-del="${esc(p.id)}" title="Eliminar">${ico('trash')}</button>` : ''}</div></div></div>`;
   }).join('') : '<div class="empty" style="grid-column:1/-1">Todavía no tienes promociones. Toca <b>Nueva promoción</b> para crear la primera.</div>';
@@ -3843,11 +3857,13 @@ function pintarPromos() {
     try { await api('eliminar', { entidad: 'Promociones', id: p.id }); S.promos = S.promos.filter(x => x.id !== p.id); pintarPromos(); toast('Promoción eliminada', 'ok'); } catch (e) { err(e); }
   });
 }
-function editarPromo(p) {
+function editarPromo(p, plantilla) {
   const nuevo = !p;
-  p = p || { tipo: 'porcentaje', activo: true, desde: hoy(), hasta: addDias(hoy(), 14) };
+  p = p || Object.assign({ tipo: 'porcentaje', activo: true, desde: hoy(), hasta: addDias(hoy(), 14), temporada: '' }, plantilla || {});
+  const T0 = temaActual();
   const svcs = S.servicios.filter(s => s.activo).map(s => s.nombre).concat(S.tratamientos.filter(t => t.activo).map(t => t.nombre));
   modal(nuevo ? 'Nueva promoción' : 'Editar promoción', `<form class="form" onsubmit="return false">
+    <div class="f full">Diseño de la tarjeta<div class="temps" id="po-temps">${[{ id: '', n: 'Colores del salón', e: '✨', bg: T0.img, ac: T0.oro }].concat(TEMPORADAS).map(t => `<button type="button" class="temp ${t.id === (p.temporada || '') ? 'on' : ''}" data-tp="${t.id}" style="--t1:${t.bg[0]};--t2:${t.bg[1]};--t3:${t.bg[2]};--ta:${hexA(t.ac, .6)}"><i>${t.e}</i><span>${esc(t.n)}</span></button>`).join('')}</div></div>
     <label class="f full">Título de la promoción *<input class="input" id="po-tit" maxlength="60" value="${esc(p.titulo || '')}" placeholder="Ej. Mes de la mamá"></label>
     <label class="f">Tipo de oferta<select class="input" id="po-tipo">${Object.keys(TIPOS_PROMO).map(k => `<option value="${k}" ${k === p.tipo ? 'selected' : ''}>${TIPOS_PROMO[k]}</option>`).join('')}</select></label>
     <label class="f" data-po="porcentaje">Descuento (%) *<input class="input" id="po-desc" type="number" min="1" max="100" inputmode="decimal" value="${esc(p.descuento || '')}" placeholder="20"></label>
@@ -3863,12 +3879,19 @@ function editarPromo(p) {
     { t: 'Guardar', cls: '', fn: () => guardar(false) },
     { t: 'Guardar y ver tarjeta', cls: 'pri', fn: () => guardar(true) }
   ]);
+  let tempSel = p.temporada || '';
+  $$('#po-temps [data-tp]').forEach(b => b.onclick = () => {
+    tempSel = b.dataset.tp; $$('#po-temps .temp').forEach(x => x.classList.toggle('on', x === b));
+    const t = temporada(tempSel);
+    if (t && !$('#po-tit').value.trim()) $('#po-tit').value = t.tit;
+    if (t && !$('#po-des').value.trim()) $('#po-des').value = t.desc;
+  });
   const tipo = () => $('#po-tipo').value;
   const ver = () => $$('[data-po]').forEach(l => { l.hidden = l.dataset.po !== tipo(); });
   $('#po-tipo').onchange = ver; ver();
   $$('[data-sv]').forEach(b => b.onclick = () => { const i = $('#po-inc'), v = i.value.trim(); if (!v.split(/\s*[+,]\s*/).includes(b.dataset.sv)) i.value = v ? v + ' + ' + b.dataset.sv : b.dataset.sv; });
   async function guardar(verTarjeta) {
-    const reg = { id: p.id, titulo: $('#po-tit').value.trim(), tipo: tipo(), descuento: num($('#po-desc').value), precio: num($('#po-precio').value), precioAntes: num($('#po-antes').value),
+    const reg = { id: p.id, temporada: tempSel, titulo: $('#po-tit').value.trim(), tipo: tipo(), descuento: num($('#po-desc').value), precio: num($('#po-precio').value), precioAntes: num($('#po-antes').value),
       incluye: $('#po-inc').value.trim(), descripcion: $('#po-des').value.trim(), desde: $('#po-ini').value, hasta: $('#po-fin').value, condiciones: $('#po-cond').value.trim(), activo: $('#po-act').checked };
     if (!reg.titulo) throw new Error('Escribe el título de la promoción');
     if (reg.tipo === 'porcentaje' && !(reg.descuento > 0 && reg.descuento <= 100)) throw new Error('El descuento debe ser de 1 a 100%');
@@ -3913,57 +3936,268 @@ function enviarPromo(p) {
   };
   $('#en-q').oninput = pintar; pintar();
 }
-async function dibujarPromo(p) {
+/* ===================== TEMPORADAS (diseños especiales de promociones) ===================== */
+const segDomingoMayo = y => { const d = new Date(y, 4, 1), p = 1 + (7 - d.getDay()) % 7; return `${y}-05-${pad(p + 7)}`; };
+const blackFriday = y => { const d = new Date(y, 10, 1), j = 1 + (4 - d.getDay() + 7) % 7; return `${y}-11-${pad(j + 22)}`; };
+const TEMPORADAS = [
+  { id: 'mujerhn', n: 'Día de la Mujer Hondureña', e: '🌺', f: '01-25', rot: 'DÍA DE LA MUJER HONDUREÑA', tit: 'Día de la Mujer Hondureña', desc: 'Celebramos a la mujer hondureña con un detalle especial para ti.',
+    bg: ['#2a0f3a', '#5b2a7a', '#c0569a'], ac: '#f3c6e0', med: ['#fff2fa', '#e9a8d0'], mt: '#4a1f63', deco: 'flores', c: ['#f7b2d6', '#d77fc0', '#ffe0f0'] },
+  { id: 'enamorados', n: 'Amor y Amistad', e: '💘', f: '02-14', rot: 'DÍA DEL AMOR Y LA AMISTAD', tit: 'Amor y Amistad', desc: 'Ven con tu amiga o tu pareja y luzcan increíbles.',
+    bg: ['#3a0410', '#8a0f2a', '#d7264d'], ac: '#ffc2cf', med: ['#fff0f3', '#ff9fb4'], mt: '#7a0d24', deco: 'corazones', c: ['#ff4d6d', '#ff8fa3', '#ffccd5'] },
+  { id: 'mujer', n: 'Día de la Mujer (8 de marzo)', e: '💜', f: '03-08', rot: 'DÍA INTERNACIONAL DE LA MUJER', tit: 'Día de la Mujer', desc: 'Porque mereces consentirte hoy y siempre.',
+    bg: ['#1f0b3d', '#4b1f86', '#8e5cd6'], ac: '#e6d2ff', med: ['#f8f2ff', '#c9a8f2'], mt: '#3b1a6e', deco: 'flores', c: ['#c9a8f2', '#a77be8', '#f1e6ff'] },
+  { id: 'padre', n: 'Día del Padre', e: '👔', f: '03-19', rot: 'FELIZ DÍA DEL PADRE', tit: 'Día del Padre', desc: 'Corte y arreglo de barba para papá.',
+    bg: ['#08142b', '#14305e', '#25508f'], ac: '#d9b779', med: ['#fdf6e8', '#d9b779'], mt: '#14305e', deco: 'geometrico', c: ['#d9b779'] },
+  { id: 'verano', n: 'Semana Santa y verano', e: '🏖️', f: null, rot: 'TEMPORADA DE VERANO', tit: 'Lista para el verano', desc: 'Manos, pies y cabello listos para la playa.',
+    bg: ['#04364a', '#0a7d8c', '#2cc3c0'], ac: '#ffd58a', med: ['#fffbe9', '#ffcf6e'], mt: '#0a5563', deco: 'verano', c: ['#ffd166', '#ffffff'] },
+  { id: 'secretaria', n: 'Día de la Secretaria', e: '💼', f: '04-26', rot: 'FELIZ DÍA DE LA SECRETARIA', tit: 'Día de la Secretaria', desc: 'Un merecido momento de belleza para ti.',
+    bg: ['#0d2f3a', '#1f5f6e', '#3f8f8a'], ac: '#f6c3c9', med: ['#fff4f4', '#f2b5bd'], mt: '#1f5f6e', deco: 'flores', c: ['#f6c3c9', '#ffffff', '#f29fae'] },
+  { id: 'madre', n: 'Día de la Madre', e: '🌷', f: segDomingoMayo, rot: 'FELIZ DÍA DE LA MADRE', tit: 'Mes de mamá', desc: 'Consiente a mamá con un día de belleza.',
+    bg: ['#4a1029', '#9c2f5c', '#e58aab'], ac: '#ffd6e3', med: ['#fff5f8', '#f7b9cd'], mt: '#8a2450', deco: 'madre', c: ['#ffd6e3', '#ff9ebb', '#ffffff'] },
+  { id: 'juniana', n: 'Feria Juniana', e: '🎉', f: '06-01', rot: 'FERIA JUNIANA', tit: 'Feria Juniana', desc: 'Luce espectacular en la feria.',
+    bg: ['#3d0a4f', '#b5179e', '#f72585'], ac: '#ffd60a', med: ['#fffbe6', '#ffd60a'], mt: '#7a0b5e', deco: 'feria', c: ['#ffd60a', '#4cc9f0', '#80ffdb', '#ff9e00', '#ffffff'] },
+  { id: 'ninos', n: 'Día del Niño', e: '🎈', f: '09-10', rot: 'FELIZ DÍA DEL NIÑO', tit: 'Día del Niño', desc: 'Cortes divertidos para los más pequeños.',
+    bg: ['#0b3a6e', '#1f78c8', '#4cc3f0'], ac: '#ffe066', med: ['#fffbe6', '#ffe066'], mt: '#0b4a8a', deco: 'globos', c: ['#ff595e', '#ffca3a', '#8ac926', '#ff8fd8', '#ffffff'] },
+  { id: 'patrias', n: 'Fiestas Patrias', e: '🇭🇳', f: '09-15', rot: 'FIESTAS PATRIAS', tit: 'Fiestas Patrias', desc: 'Celebra a Honduras luciendo hermosa.',
+    bg: ['#002f5c', '#0067b1', '#2ea3e0'], ac: '#ffffff', med: ['#ffffff', '#bfe3fa'], mt: '#004f8f', deco: 'patrias', c: ['#ffffff', '#8fd3ff'] },
+  { id: 'amarillas', n: 'Flores Amarillas', e: '🌻', f: '09-21', rot: 'DÍA DE LAS FLORES AMARILLAS', tit: 'Flores amarillas', desc: 'Regala belleza este 21 de septiembre.',
+    bg: ['#fff7d6', '#ffe27a', '#ffc93c'], ac: '#8a5a00', med: ['#ffffff', '#fff1b8'], mt: '#6b4500', tinta: '#3d2a00', tinta2: 'rgba(61,42,0,.82)', deco: 'girasoles', c: ['#ffd23f', '#ffb703', '#6b3f00'] },
+  { id: 'halloween', n: 'Halloween', e: '🎃', f: '10-31', rot: 'NOCHE DE HALLOWEEN', tit: 'Halloween', desc: 'Maquillaje y peinados de fantasía.',
+    bg: ['#120a1f', '#3b1557', '#7a2e8c'], ac: '#ff9a3c', med: ['#fff1e0', '#ff9a3c'], mt: '#3b1557', deco: 'halloween', c: ['#ff9a3c', '#f8f0d0', '#1a0d26'] },
+  { id: 'blackfriday', n: 'Black Friday', e: '🖤', f: blackFriday, rot: 'BLACK FRIDAY', tit: 'Black Friday', desc: 'Los mejores precios del año.',
+    bg: ['#000000', '#121212', '#2a2a2a'], ac: '#e5c063', med: ['#fff3cf', '#e5c063'], mt: '#111111', deco: 'black', c: ['#e5c063', '#d62828'] },
+  { id: 'graduacion', n: 'Graduaciones', e: '🎓', f: '11-15', rot: 'TEMPORADA DE GRADUACIONES', tit: 'Graduaciones', desc: 'Peinado y maquillaje para tu gran día.',
+    bg: ['#0a0a0a', '#1c1c24', '#2e2e3a'], ac: '#e2bd64', med: ['#fff6dd', '#e2bd64'], mt: '#1c1c24', deco: 'graduacion', c: ['#e2bd64', '#ffffff', '#f5d78e'] },
+  { id: 'navidad', n: 'Navidad', e: '🎄', f: '12-25', rot: 'FELIZ NAVIDAD', tit: 'Navidad radiante', desc: 'Brilla en las fiestas con tu mejor look.',
+    bg: ['#3b0508', '#8a0f16', '#b81d24'], ac: '#f3d27a', med: ['#fff8e6', '#f3d27a'], mt: '#7a0c12', deco: 'navidad', c: ['#f3d27a', '#2f7d4f', '#ffffff'] },
+  { id: 'anionuevo', n: 'Año Nuevo', e: '🥂', f: '12-31', rot: 'FELIZ AÑO NUEVO', tit: 'Año nuevo, look nuevo', desc: 'Recibe el año luciendo increíble.',
+    bg: ['#05070f', '#141b33', '#2b3566'], ac: '#e7c873', med: ['#fff8e3', '#e7c873'], mt: '#141b33', deco: 'fuegos', c: ['#e7c873', '#c0c8e8', '#ffffff'] },
+  { id: 'bodas', n: 'Novias y bodas', e: '💍', f: null, rot: 'NOVIAS', tit: 'Novias', desc: 'Peinado y maquillaje para el día más especial.',
+    bg: ['#fffdf9', '#f6ede1', '#ead9c2'], ac: '#a8875a', med: ['#ffffff', '#efe2cf'], mt: '#6e5434', tinta: '#4a3a28', tinta2: 'rgba(74,58,40,.8)', deco: 'bodas', c: ['#ffffff', '#e8d5b5', '#a8875a'] },
+  { id: 'cumple', n: 'Cumpleaños', e: '🎂', f: null, rot: '¡FELIZ CUMPLEAÑOS!', tit: 'Mes de tu cumpleaños', desc: 'Celebra tu cumpleaños con un regalo de belleza.',
+    bg: ['#2b0f4a', '#6a1b9a', '#e0469c'], ac: '#ffd166', med: ['#fffbea', '#ffd166'], mt: '#5a1580', deco: 'globos', c: ['#ffd166', '#06d6a0', '#ef476f', '#118ab2', '#ffffff'] }
+];
+const temporada = id => TEMPORADAS.find(t => t.id === id) || null;
+function fechaTemporada(t, y) { if (!t.f) return null; return typeof t.f === 'function' ? t.f(y) : `${y}-${t.f}`; }
+function proximasTemporadas(dias) {
+  const h = hoy(), y = Number(h.slice(0, 4)), out = [];
+  TEMPORADAS.forEach(t => {
+    let f = fechaTemporada(t, y); if (!f) return;
+    if (f < h) f = fechaTemporada(t, y + 1);
+    const falta = Math.round((parseLocal(f) - parseLocal(h)) / 86400000);
+    if (falta <= dias) out.push({ t, f, falta });
+  });
+  return out.sort((a, b) => a.falta - b.falta);
+}
+// Paleta de la tarjeta: la temporada elegida o los colores del salón
+function paletaPromo(p) {
+  const t = temporada(p.temporada), T = temaActual();
+  if (!t) return { bg: T.img, ac: T.oro, med: ['#fff7ea', T.oro], mt: T.d, tinta: '#ffffff', tinta2: 'rgba(255,255,255,.86)', rot: 'PROMOCIÓN ESPECIAL', deco: null, c: [T.oro] };
+  return Object.assign({ tinta: '#ffffff', tinta2: 'rgba(255,255,255,.86)' }, t);
+}
+function azar(semilla) { let s = semilla | 0; return () => { s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+/* Motivos dibujados a mano (sin imágenes externas) */
+const M = {
+  corazon(x, cx, cy, s, col, a) { x.save(); x.globalAlpha = a; x.fillStyle = col; x.translate(cx, cy); x.scale(s / 100, s / 100); x.beginPath(); x.moveTo(0, 30); x.bezierCurveTo(-60, -20, -30, -70, 0, -38); x.bezierCurveTo(30, -70, 60, -20, 0, 30); x.fill(); x.restore(); },
+  flor(x, cx, cy, r, pet, cPet, cCen, rot, a) {
+    x.save(); x.globalAlpha = a; x.translate(cx, cy); x.rotate(rot || 0);
+    for (let i = 0; i < pet; i++) { x.rotate(Math.PI * 2 / pet); x.fillStyle = cPet; x.beginPath(); x.ellipse(0, -r * .55, r * .28, r * .55, 0, 0, Math.PI * 2); x.fill(); }
+    x.fillStyle = cCen; x.beginPath(); x.arc(0, 0, r * .26, 0, Math.PI * 2); x.fill(); x.restore();
+  },
+  hoja(x, cx, cy, s, rot, col, a) { x.save(); x.globalAlpha = a; x.fillStyle = col; x.translate(cx, cy); x.rotate(rot); x.beginPath(); x.ellipse(0, 0, s * .22, s * .6, 0, 0, Math.PI * 2); x.fill(); x.restore(); },
+  estrella(x, cx, cy, r, col, a, puntas) {
+    const n = puntas || 5; x.save(); x.globalAlpha = a; x.fillStyle = col; x.beginPath();
+    for (let i = 0; i < n * 2; i++) { const rr = i % 2 ? r * .45 : r, an = -Math.PI / 2 + i * Math.PI / n; x.lineTo(cx + Math.cos(an) * rr, cy + Math.sin(an) * rr); }
+    x.closePath(); x.fill(); x.restore();
+  },
+  copo(x, cx, cy, s, col, a) {
+    x.save(); x.globalAlpha = a; x.strokeStyle = col; x.lineWidth = Math.max(2, s / 14); x.lineCap = 'round'; x.translate(cx, cy);
+    for (let i = 0; i < 6; i++) { x.rotate(Math.PI / 3); x.beginPath(); x.moveTo(0, 0); x.lineTo(0, -s); x.moveTo(0, -s * .55); x.lineTo(-s * .22, -s * .75); x.moveTo(0, -s * .55); x.lineTo(s * .22, -s * .75); x.stroke(); }
+    x.restore();
+  },
+  esfera(x, cx, top, cy, r, col, ac, a) {
+    x.save(); x.globalAlpha = a; x.strokeStyle = ac; x.lineWidth = 2; x.beginPath(); x.moveTo(cx, top); x.lineTo(cx, cy - r - 10); x.stroke();
+    x.fillStyle = ac; x.fillRect(cx - r * .28, cy - r - 12, r * .56, 14);
+    const g = x.createRadialGradient(cx - r * .35, cy - r * .35, r * .1, cx, cy, r); g.addColorStop(0, '#ffffff'); g.addColorStop(.25, col); g.addColorStop(1, hexA(col, .85));
+    x.fillStyle = g; x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); x.restore();
+  },
+  globo(x, cx, cy, r, col, a) {
+    x.save(); x.globalAlpha = a; x.strokeStyle = 'rgba(255,255,255,.7)'; x.lineWidth = 2; x.beginPath(); x.moveTo(cx, cy + r * 1.2); x.bezierCurveTo(cx - 14, cy + r * 1.7, cx + 14, cy + r * 2.1, cx, cy + r * 2.6); x.stroke();
+    const g = x.createRadialGradient(cx - r * .35, cy - r * .45, r * .1, cx, cy, r * 1.2); g.addColorStop(0, '#ffffff'); g.addColorStop(.3, col); g.addColorStop(1, col);
+    x.fillStyle = g; x.beginPath(); x.ellipse(cx, cy, r, r * 1.2, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = col; x.beginPath(); x.moveTo(cx, cy + r * 1.18); x.lineTo(cx - 8, cy + r * 1.32); x.lineTo(cx + 8, cy + r * 1.32); x.fill(); x.restore();
+  },
+  birrete(x, cx, cy, s, col, ac, a) {
+    x.save(); x.globalAlpha = a; x.translate(cx, cy);
+    x.fillStyle = col; x.beginPath(); x.moveTo(-s * .45, s * .12); x.lineTo(-s * .45, s * .42); x.quadraticCurveTo(0, s * .6, s * .45, s * .42); x.lineTo(s * .45, s * .12); x.fill();
+    x.beginPath(); x.moveTo(0, -s * .32); x.lineTo(s, 0); x.lineTo(0, s * .32); x.lineTo(-s, 0); x.closePath(); x.fill();
+    x.strokeStyle = ac; x.lineWidth = 3; x.beginPath(); x.moveTo(0, 0); x.lineTo(s * .7, s * .12); x.lineTo(s * .7, s * .62); x.stroke();
+    x.fillStyle = ac; x.fillRect(s * .64, s * .58, s * .12, s * .22); x.restore();
+  },
+  murcielago(x, cx, cy, s, col, a) {
+    x.save(); x.globalAlpha = a; x.fillStyle = col; x.translate(cx, cy); x.scale(s / 100, s / 100); x.beginPath();
+    x.moveTo(0, -8); x.quadraticCurveTo(10, -22, 14, -6); x.quadraticCurveTo(40, -30, 90, -10); x.quadraticCurveTo(70, -4, 66, 10); x.quadraticCurveTo(54, 0, 44, 12); x.quadraticCurveTo(34, 2, 20, 14); x.quadraticCurveTo(10, 8, 0, 22);
+    x.quadraticCurveTo(-10, 8, -20, 14); x.quadraticCurveTo(-34, 2, -44, 12); x.quadraticCurveTo(-54, 0, -66, 10); x.quadraticCurveTo(-70, -4, -90, -10); x.quadraticCurveTo(-40, -30, -14, -6); x.quadraticCurveTo(-10, -22, 0, -8); x.fill(); x.restore();
+  },
+  luna(x, cx, cy, r, col, a) { x.save(); x.globalAlpha = a; x.fillStyle = col; x.shadowColor = col; x.shadowBlur = 40; x.beginPath(); x.arc(cx, cy, r, Math.PI * .35, Math.PI * 1.65); x.arc(cx + r * .45, cy - r * .1, r * .82, Math.PI * 1.55, Math.PI * .45, true); x.fill(); x.restore(); },
+  sol(x, cx, cy, r, col, a) {
+    x.save(); x.globalAlpha = a; x.fillStyle = col; x.strokeStyle = col; x.lineWidth = 6; x.lineCap = 'round';
+    for (let i = 0; i < 12; i++) { const an = i * Math.PI / 6; x.beginPath(); x.moveTo(cx + Math.cos(an) * r * 1.3, cy + Math.sin(an) * r * 1.3); x.lineTo(cx + Math.cos(an) * r * 1.65, cy + Math.sin(an) * r * 1.65); x.stroke(); }
+    x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); x.restore();
+  },
+  olas(x, W, y0, col, a) { x.save(); x.globalAlpha = a; x.strokeStyle = col; x.lineWidth = 4; for (let k = 0; k < 3; k++) { x.beginPath(); for (let i = 0; i <= W; i += 10) x.lineTo(i, y0 + k * 22 + Math.sin(i / 38 + k) * 8); x.stroke(); } x.restore(); },
+  fuego(x, cx, cy, r, col, a) {
+    x.save(); x.globalAlpha = a; x.strokeStyle = col; x.fillStyle = col; x.lineCap = 'round';
+    for (let i = 0; i < 16; i++) { const an = i * Math.PI / 8; x.lineWidth = 3; x.beginPath(); x.moveTo(cx + Math.cos(an) * r * .25, cy + Math.sin(an) * r * .25); x.lineTo(cx + Math.cos(an) * r * .8, cy + Math.sin(an) * r * .8); x.stroke(); x.beginPath(); x.arc(cx + Math.cos(an) * r, cy + Math.sin(an) * r, 4, 0, Math.PI * 2); x.fill(); }
+    x.restore();
+  },
+  anillos(x, cx, cy, r, col, a) { x.save(); x.globalAlpha = a; x.strokeStyle = col; x.lineWidth = r * .16; x.beginPath(); x.arc(cx - r * .45, cy, r, 0, Math.PI * 2); x.stroke(); x.beginPath(); x.arc(cx + r * .45, cy, r, 0, Math.PI * 2); x.stroke(); M.estrella(x, cx - r * .45, cy - r - 6, r * .32, col, 1, 4); x.restore(); },
+  etiqueta(x, cx, cy, s, rot, col, txt, a) {
+    x.save(); x.globalAlpha = a; x.translate(cx, cy); x.rotate(rot); x.fillStyle = col; x.beginPath(); x.moveTo(-s, -s * .45); x.lineTo(s * .6, -s * .45); x.lineTo(s, 0); x.lineTo(s * .6, s * .45); x.lineTo(-s, s * .45); x.closePath(); x.fill();
+    x.fillStyle = '#111'; x.beginPath(); x.arc(s * .55, 0, s * .1, 0, Math.PI * 2); x.fill(); x.font = `800 ${Math.round(s * .42)}px Inter, Arial, sans-serif`; x.textAlign = 'center'; x.fillText(txt, -s * .2, s * .15); x.restore();
+  },
+  confeti(x, W, H, n, cols, rnd, a, zona) {
+    x.save(); x.globalAlpha = a;
+    for (let i = 0; i < n; i++) {
+      let px = rnd() * W, py = rnd() * H;
+      if (zona !== 'todo' && px > 170 && px < W - 170 && py > 200 && py < H - 150) { px = rnd() < .5 ? rnd() * 160 + 10 : W - 170 + rnd() * 160; }
+      x.fillStyle = cols[Math.floor(rnd() * cols.length)]; x.save(); x.translate(px, py); x.rotate(rnd() * Math.PI);
+      if (rnd() < .5) x.fillRect(-7, -3, 14, 6); else { x.beginPath(); x.arc(0, 0, 4 + rnd() * 3, 0, Math.PI * 2); x.fill(); }
+      x.restore();
+    }
+    x.restore();
+  },
+  banderines(x, x0, y0, x1, y1, caida, cols, a, n) {
+    n = n || 7;
+    x.save(); x.globalAlpha = a; x.strokeStyle = 'rgba(255,255,255,.75)'; x.lineWidth = 2;
+    const P = t => [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t + Math.sin(Math.PI * t) * caida];
+    x.beginPath(); for (let t = 0; t <= 1.001; t += .05) x.lineTo(...P(t)); x.stroke();
+    for (let i = 0; i < n; i++) { const [px, py] = P((i + .5) / n); x.fillStyle = cols[i % cols.length]; x.beginPath(); x.moveTo(px - 20, py); x.lineTo(px + 20, py); x.lineTo(px, py + 42); x.closePath(); x.fill(); }
+    x.restore();
+  }
+};
+const ESQ = [[90, 120, 1], [200, 70, .62], [990, 110, 1.05], [880, 62, .58], [64, 470, .55], [1016, 500, .6], [60, 800, .5], [1020, 840, .55], [96, 1220, 1.05], [215, 1290, .62], [985, 1230, 1.1], [870, 1292, .6]];
+function decoPromo(x, W, H, P, rnd) {
+  const c = P.c, pos = ESQ.map(([px, py, k]) => [px, py * H / 1350, k]);
+  switch (P.deco) {
+    case 'flores': case 'madre':
+      pos.forEach(([px, py, k], i) => {
+        M.hoja(x, px - 30 * k, py + 26 * k, 70 * k, -.8, hexA(P.ac, .35), .9); M.hoja(x, px + 34 * k, py + 20 * k, 64 * k, .9, hexA(P.ac, .3), .9);
+        M.flor(x, px, py, 62 * k, i % 2 ? 6 : 5, c[i % c.length], P.ac, i, .92);
+        if (P.deco === 'madre' && i % 3 === 0) M.corazon(x, px + 60 * k, py - 50 * k, 42 * k, c[1], .85);
+      }); break;
+    case 'corazones':
+      pos.forEach(([px, py, k], i) => { M.corazon(x, px, py, 110 * k, c[i % c.length], .9); M.corazon(x, px + (i % 2 ? -70 : 70) * k, py + 60 * k, 46 * k, c[(i + 1) % c.length], .75); });
+      for (let i = 0; i < 18; i++) brillo(x, rnd() * W, rnd() * H, 6 + rnd() * 8, .5); break;
+    case 'geometrico':
+      x.save(); x.strokeStyle = hexA(P.ac, .45); x.lineWidth = 2;
+      for (let i = 0; i < 6; i++) { x.beginPath(); x.moveTo(0, 230 + i * 26); x.lineTo(230 + i * 26, 0); x.stroke(); x.beginPath(); x.moveTo(W, H - 230 - i * 26); x.lineTo(W - 230 - i * 26, H); x.stroke(); }
+      x.restore(); pos.forEach(([px, py, k]) => M.estrella(x, px, py, 22 * k, P.ac, .8)); break;
+    case 'verano':
+      M.sol(x, W - 150, 170, 62, c[0], .95); M.olas(x, W, H - 128, 'rgba(255,255,255,.4)', 1);
+      pos.slice(0, 8).forEach(([px, py, k]) => M.estrella(x, px, py, 16 * k, c[1], .6)); break;
+    case 'feria':
+      M.banderines(x, 40, 70, 400, 50, 60, c, .95); M.banderines(x, W - 400, 50, W - 40, 70, 60, c.slice().reverse(), .95);
+      M.banderines(x, 46, H - 250, 215, H - 120, 26, c, .9, 4); M.banderines(x, W - 215, H - 120, W - 46, H - 250, 26, c, .9, 4);
+      M.confeti(x, W, H, 70, c, rnd, .85); break;
+    case 'globos':
+      [[110, 250, 52, 0], [210, 170, 40, 1], [70, 140, 34, 2], [970, 240, 54, 3], [870, 160, 40, 4], [1010, 120, 30, 1], [95, 1050, 46, 2], [985, 1060, 48, 0]].forEach(([px, py, r, i]) => M.globo(x, px, py * H / 1350, r, c[i % c.length], .92));
+      M.confeti(x, W, H, 55, c, rnd, .8); break;
+    case 'patrias':
+      x.save(); x.fillStyle = 'rgba(255,255,255,.12)'; x.fillRect(0, 0, W, 70); x.fillRect(0, H - 70, W, 70); x.restore();
+      [[150, 150], [930, 150], [150, H - 160], [930, H - 160]].forEach(([cx, cy]) => { M.estrella(x, cx, cy, 30, '#ffffff', .9); [[-60, -40], [60, -40], [-60, 40], [60, 40]].forEach(([dx, dy]) => M.estrella(x, cx + dx, cy + dy, 16, '#ffffff', .75)); }); break;
+    case 'girasoles':
+      pos.forEach(([px, py, k], i) => { M.hoja(x, px - 40 * k, py + 40 * k, 80 * k, -.9, '#7aa83a', .85); M.flor(x, px, py, 78 * k, 14, c[i % 2], '#6b3f00', i * .3, .96); M.flor(x, px, py, 30 * k, 10, '#8a5300', '#4a2a00', 0, .9); }); break;
+    case 'halloween':
+      M.luna(x, W - 170, 190, 80, '#f8f0d0', .95);
+      [[150, 150, 80], [270, 90, 50], [860, 330, 46], [120, H - 260, 60], [960, H - 230, 70], [240, H - 140, 40]].forEach(([px, py, s]) => M.murcielago(x, px, py, s, '#0b0612', .9));
+      for (let i = 0; i < 26; i++) M.estrella(x, rnd() * W, rnd() * H, 3 + rnd() * 5, '#ffd9a8', .6, 4); break;
+    case 'black':
+      M.etiqueta(x, 150, 170, 80, -.35, c[0], '%', .95); M.etiqueta(x, W - 160, 200, 70, .3, c[1], '%', .9); M.etiqueta(x, 140, H - 200, 64, .25, c[1], '%', .85); M.etiqueta(x, W - 150, H - 190, 80, -.3, c[0], '%', .95);
+      for (let i = 0; i < 24; i++) brillo(x, rnd() * W, rnd() * H, 5 + rnd() * 9, .6); break;
+    case 'graduacion':
+      [[140, 170, 70, -.25], [930, 190, 76, .2], [130, H - 210, 60, .15], [950, H - 200, 66, -.2]].forEach(([px, py, s, r]) => { x.save(); x.translate(px, py); x.rotate(r); M.birrete(x, 0, 0, s, '#050505', P.ac, .98); x.restore(); });
+      M.confeti(x, W, H, 70, c, rnd, .85); break;
+    case 'navidad':
+      [[110, 230, 34, 0], [200, 160, 26, 1], [300, 110, 20, 0], [970, 240, 36, 1], [880, 165, 26, 0], [780, 110, 20, 1]].forEach(([px, py, r, i]) => M.esfera(x, px, 0, py, r, i ? c[1] : c[0], P.ac, .97));
+      pos.slice(4).forEach(([px, py, k]) => M.copo(x, px, py, 34 * k, '#ffffff', .75));
+      for (let i = 0; i < 30; i++) { x.save(); x.globalAlpha = .6; x.fillStyle = '#fff'; x.beginPath(); x.arc(rnd() * W, rnd() * H, 1.5 + rnd() * 2.5, 0, Math.PI * 2); x.fill(); x.restore(); } break;
+    case 'fuegos':
+      [[170, 200, 90, 0], [920, 170, 110, 1], [110, H - 260, 70, 2], [960, H - 280, 90, 0], [300, 110, 50, 1]].forEach(([px, py, r, i]) => M.fuego(x, px, py, r, c[i % c.length], .9));
+      M.confeti(x, W, H, 40, [P.ac, '#ffffff'], rnd, .7); break;
+    case 'bodas':
+      M.anillos(x, 150, 180, 46, P.ac, .9); M.anillos(x, W - 160, H - 210, 40, P.ac, .85);
+      pos.forEach(([px, py, k], i) => { if (i === 0 || i === 10) return; M.hoja(x, px - 30 * k, py + 24 * k, 60 * k, -.8, hexA('#9caf88', .7), .9); M.flor(x, px, py, 52 * k, 5, '#ffffff', '#e8d5b5', i, .95); });
+      for (let i = 0; i < 16; i++) brillo(x, rnd() * W, rnd() * H, 5 + rnd() * 7, .5); break;
+  }
+}
+function fondoPromo(x, W, H, P, semilla) {
+  const g = x.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, P.bg[0]); g.addColorStop(.55, P.bg[1]); g.addColorStop(1, P.bg[2]);
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  [[W - 120, 140, 520, hexA(P.ac, .25)], [80, H - 80, 460, hexA(P.bg[2], .45)]].forEach(([cx, cy, r, col]) => {
+    const rg = x.createRadialGradient(cx, cy, 0, cx, cy, r); rg.addColorStop(0, col); rg.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = rg; x.fillRect(0, 0, W, H);
+  });
+  if (P.deco) decoPromo(x, W, H, P, azar(semilla));
+  else [[150, 120, 14, .8], [930, 300, 10, .7], [990, 210, 6, .6], [110, 430, 8, .5], [960, H - 200, 12, .7], [140, H - 110, 7, .6]].forEach(b => brillo(x, ...b));
+  x.strokeStyle = P.ac; x.globalAlpha = .9; x.lineWidth = 2; rr(x, 36, 36, W - 72, H - 72, 28); x.stroke();
+  x.globalAlpha = .4; x.lineWidth = 1; rr(x, 50, 50, W - 100, H - 100, 22); x.stroke(); x.globalAlpha = 1;
+}
+async function dibujarPromo(p, altoFijo) {
   await logoListo();
   try { await Promise.all(['700 80px "Playfair Display"', 'italic 600 40px "Playfair Display"', 'italic 700 80px "Playfair Display"', '400 28px Inter', '600 28px Inter', '700 28px Inter'].map(f => document.fonts.load(f))); } catch (e) {}
   const SERIF = '"Playfair Display", Georgia, serif', SANS = 'Inter, "Segoe UI", Arial, sans-serif';
-  const T = temaActual(), GOLD = T.oro, cfg = S.config, o = ofertaPromo(p);
-  const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const P = paletaPromo(p), cfg = S.config, o = ofertaPromo(p);
+  const W = 1080, H = altoFijo || 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const x = cv.getContext('2d');
-  fondoMarca(x, W, H);
+  fondoPromo(x, W, H, P, String(p.id || p.titulo).split('').reduce((a, ch) => a * 31 + ch.charCodeAt(0) | 0, 7));
   const media = logoMarca(x, W / 2, 158);
   x.textAlign = 'center'; x.textBaseline = 'alphabetic';
   let y = 158 + media + 62;
-  x.fillStyle = '#ffffff'; x.font = `700 40px ${SERIF}`;
-  x.fillText(lineas(x, cfg.nombre || 'Salón de Belleza', 860)[0], W / 2, y);
-  y += 54; x.fillStyle = GOLD; x.font = `600 22px ${SANS}`; espaciado(x, 8); x.fillText('PROMOCIÓN ESPECIAL', W / 2, y); espaciado(x, 0);
+  x.fillStyle = P.tinta; x.font = `700 40px ${SERIF}`;
+  x.fillText(lineas(x, cfg.nombre || 'Salón de Belleza', 820)[0], W / 2, y);
+  y += 54; x.fillStyle = P.ac; x.font = `700 22px ${SANS}`; espaciado(x, 7);
+  x.fillText(P.rot, W / 2, y); espaciado(x, 0);
   // Título
-  x.fillStyle = '#ffffff'; x.font = `italic 700 76px ${SERIF}`;
-  let tl = lineas(x, p.titulo, 880);
-  if (tl.length > 2) { x.font = `italic 700 60px ${SERIF}`; tl = lineas(x, p.titulo, 900).slice(0, 2); }
+  x.fillStyle = P.tinta; x.font = `italic 700 76px ${SERIF}`;
+  let tl = lineas(x, p.titulo, 860);
+  if (tl.length > 2) { x.font = `italic 700 60px ${SERIF}`; tl = lineas(x, p.titulo, 880).slice(0, 2); }
   const lh = tl.length > 1 ? 74 : 0;
   y += 96; tl.forEach((l, i) => x.fillText(l, W / 2, y + i * lh)); y += lh * (tl.length - 1);
   // Medalla con la oferta
-  const R = 175, cy = y + 52 + R;
+  const R = tl.length > 1 ? 155 : 175, cy = y + 52 + R;
   x.save(); x.shadowColor = 'rgba(0,0,0,.38)'; x.shadowBlur = 50; x.shadowOffsetY = 18;
-  const gm = x.createLinearGradient(W / 2 - R, cy - R, W / 2 + R, cy + R); gm.addColorStop(0, '#fff7ea'); gm.addColorStop(.55, GOLD); gm.addColorStop(1, hexA(GOLD, 1));
+  const gm = x.createLinearGradient(W / 2 - R, cy - R, W / 2 + R, cy + R); gm.addColorStop(0, P.med[0]); gm.addColorStop(.55, P.med[1]); gm.addColorStop(1, P.med[1]);
   x.fillStyle = gm; x.beginPath(); x.arc(W / 2, cy, R, 0, Math.PI * 2); x.fill(); x.restore();
   x.strokeStyle = 'rgba(255,255,255,.8)'; x.lineWidth = 3; x.beginPath(); x.arc(W / 2, cy, R - 16, 0, Math.PI * 2); x.stroke();
-  x.strokeStyle = hexA(T.d, .35); x.lineWidth = 1.5; x.setLineDash([4, 8]); x.beginPath(); x.arc(W / 2, cy, R - 30, 0, Math.PI * 2); x.stroke(); x.setLineDash([]);
+  x.strokeStyle = hexA(P.mt, .35); x.lineWidth = 1.5; x.setLineDash([4, 8]); x.beginPath(); x.arc(W / 2, cy, R - 30, 0, Math.PI * 2); x.stroke(); x.setLineDash([]);
   let fs = 128; x.font = `700 ${fs}px ${SERIF}`;
   while (x.measureText(o.g).width > 2 * R - 90 && fs > 54) { fs -= 6; x.font = `700 ${fs}px ${SERIF}`; }
-  x.fillStyle = T.d; x.fillText(o.g, W / 2, cy + fs * .3);
-  x.font = `600 28px ${SANS}`; x.fillStyle = hexA(T.d, .85);
+  x.fillStyle = P.mt; x.fillText(o.g, W / 2, cy + fs * .3);
+  x.font = `600 28px ${SANS}`; x.fillStyle = hexA(P.mt, .85);
   const cy2 = cy + fs * .3 + 50;
   x.fillText(o.c, W / 2, cy2);
-  if (o.antes) { const w2 = x.measureText(o.c).width; x.strokeStyle = hexA(T.d, .8); x.lineWidth = 3; x.beginPath(); x.moveTo(W / 2 - w2 / 2 - 4, cy2 - 9); x.lineTo(W / 2 + w2 / 2 + 4, cy2 - 9); x.stroke(); }
-  brillo(x, W / 2 + R - 10, cy - R + 30, 22, .95); brillo(x, W / 2 - R + 14, cy + R - 50, 14, .8);
+  if (o.antes) { const w2 = x.measureText(o.c).width; x.strokeStyle = hexA(P.mt, .8); x.lineWidth = 3; x.beginPath(); x.moveTo(W / 2 - w2 / 2 - 4, cy2 - 9); x.lineTo(W / 2 + w2 / 2 + 4, cy2 - 9); x.stroke(); }
   // Detalle
   y = cy + R + 74;
-  if (p.incluye) { x.fillStyle = '#ffffff'; x.font = `600 38px ${SANS}`; lineas(x, p.incluye, 880).slice(0, 2).forEach(l => { x.fillText(l, W / 2, y); y += 50; }); }
-  if (p.descripcion) { y += 4; x.fillStyle = 'rgba(255,255,255,.86)'; x.font = `400 28px ${SANS}`; lineas(x, p.descripcion, 860).slice(0, 2).forEach(l => { x.fillText(l, W / 2, y); y += 40; }); }
+  if (p.incluye) { x.fillStyle = P.tinta; x.font = `600 38px ${SANS}`; lineas(x, p.incluye, 820).slice(0, 2).forEach(l => { x.fillText(l, W / 2, y); y += 50; }); }
+  if (p.descripcion) { y += 4; x.fillStyle = P.tinta2; x.font = `400 28px ${SANS}`; lineas(x, p.descripcion, 800).slice(0, 2).forEach(l => { x.fillText(l, W / 2, y); y += 40; }); }
   // Vigencia
   const vt = vigenciaPromo(p); x.font = `600 28px ${SANS}`;
   const vw = x.measureText(vt).width + 70, vy = Math.max(y + 20, H - 330);
-  x.strokeStyle = GOLD; x.lineWidth = 2; rr(x, W / 2 - vw / 2, vy, vw, 64, 32); x.stroke();
-  x.fillStyle = GOLD; x.fillText(vt, W / 2, vy + 42);
+  x.save(); x.fillStyle = hexA(P.bg[0], .35); rr(x, W / 2 - vw / 2, vy, vw, 64, 32); x.fill(); x.restore();
+  x.strokeStyle = P.ac; x.lineWidth = 2; rr(x, W / 2 - vw / 2, vy, vw, 64, 32); x.stroke();
+  x.fillStyle = P.tinta === '#ffffff' ? P.ac : P.tinta; x.fillText(vt, W / 2, vy + 42);
   // Pie
   let fy = vy + 128;
-  x.fillStyle = '#ffffff'; x.font = `italic 600 40px ${SERIF}`; x.fillText('¡Reserva tu cita!', W / 2, fy);
+  x.fillStyle = P.tinta; x.font = `italic 600 40px ${SERIF}`; x.fillText('¡Reserva tu cita!', W / 2, fy);
   fy += 50;
-  const cont = [cfg.telefono ? 'WhatsApp ' + cfg.telefono : '', cfg.direccion ? lineas(x, cfg.direccion, 500)[0] : ''].filter(Boolean).join('  ·  ');
-  if (cont) { x.fillStyle = 'rgba(255,255,255,.88)'; x.font = `400 26px ${SANS}`; x.fillText(lineas(x, cont, 900)[0], W / 2, fy); }
-  if (p.condiciones) { x.fillStyle = 'rgba(255,255,255,.62)'; x.font = `400 20px ${SANS}`; x.fillText(lineas(x, p.condiciones, 900)[0], W / 2, H - 74); }
+  const cont = [cfg.telefono ? 'WhatsApp ' + cfg.telefono : '', cfg.direccion ? lineas(x, cfg.direccion, 480)[0] : ''].filter(Boolean).join('  ·  ');
+  if (cont) { x.fillStyle = P.tinta2; x.font = `400 26px ${SANS}`; x.fillText(lineas(x, cont, 800)[0], W / 2, fy); }
+  if (p.condiciones) { x.fillStyle = P.tinta2; x.globalAlpha = .75; x.font = `400 20px ${SANS}`; x.fillText(lineas(x, p.condiciones, 820)[0], W / 2, H - 74); x.globalAlpha = 1; }
+  // Si el contenido no cupo, se vuelve a dibujar más alta para que nada se encime
+  const necesario = fy + (p.condiciones ? 130 : 100);
+  if (!altoFijo && necesario > H) return dibujarPromo(p, Math.ceil(necesario));
   return cv;
 }
 
