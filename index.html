@@ -2169,6 +2169,18 @@ function licPanel(){
     ${isPlus()?'':`<div class="row"><button class="btn" onclick="plusCheck()">Verificar Plus</button><button class="btn gold" onclick="plusActForm()">Activar Plus</button></div>`}</div>`;
 }
 
+/* ===== Aviso de versión nueva (para la app instalada y la web) ===== */
+const APP_VER='2026.10.10-2';
+let _verT=0;
+async function verCheck(){
+  if(Date.now()-_verT<60000)return;_verT=Date.now();
+  try{const r=await fetch('./index.html?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;
+    const m=(await r.text()).match(/const APP_VER='([^']+)'/);
+    if(m&&m[1]!==APP_VER)toastAct('✨ Hay una versión nueva de la app','Actualizar',()=>{if(CLOUD&&SY.dirty){cloudPush();setTimeout(()=>location.reload(),2500);}else location.reload();});
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')verCheck();});
+setInterval(verCheck,30*60000);setTimeout(verCheck,8000);
 S.mes=mesActual();
 if(CLOUD){render();if(LIC.estado)cloudLoad();else gate('bienvenida');setInterval(licInit,6*36e5);}
 else{numerar();save();render();}

@@ -1,11 +1,11 @@
 // Eventos VM: permite instalar la app y abrirla sin conexión.
-// La app se busca primero en internet (así siempre carga la última versión de GitHub);
+// La página se pide SIEMPRE a internet sin usar copias guardadas (así cada actualización de GitHub llega al abrir);
 // solo si no hay señal se usa la copia guardada. Las llamadas a Apps Script nunca se guardan.
-const CACHE = 'eventos-vm-v1';
+const CACHE = 'eventos-vm-v2';
 const BASE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -21,16 +21,18 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin && !url.hostname.endsWith('fonts.googleapis.com') && !url.hostname.endsWith('fonts.gstatic.com')) return;
+  const pagina = req.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('.html');
+  const pedir = pagina ? fetch(new Request(req.url, { cache: 'no-store', credentials: 'same-origin' })) : fetch(req);
 
   e.respondWith(
-    fetch(req)
+    pedir
       .then(res => {
-        if (res && res.ok) {
+        if (res && res.ok && !url.search) {
           const copy = res.clone();
           caches.open(CACHE).then(c => c.put(req, copy));
         }
         return res;
       })
-      .catch(() => caches.match(req).then(r => r || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
+      .catch(() => caches.match(req, { ignoreSearch: true }).then(r => r || (pagina ? caches.match('./index.html') : undefined)))
   );
 });
