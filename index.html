@@ -1039,7 +1039,7 @@ function eliminar_(u, d) {
   if (permitidas.indexOf(d.entidad) < 0) throw new Error('No se puede eliminar este tipo de registro');
   if (d.entidad === 'Citas') {
     const c = rows_('Citas').find(x => x.id === d.id);
-    if (c && c.estado === 'completada') throw new Error('No se puede eliminar una cita completada');
+    if (c && c.estado === 'completada') aplicarEstado_(c, 'cancelada'); // devuelve la sesión al plan antes de borrar
   }
   deleteRow_(d.entidad, d.id);
   return true;
@@ -2240,7 +2240,7 @@ function detalleCita(id) {
     if (c.planId) await recargar(true);
     cerrarModal(); toast('Cita: ' + ESTADOS[nuevo].t, 'ok'); refrescarCitas();
   };
-  if (!['cancelada', 'no_asistio', 'completada'].includes(c.estado)) b.push({ t: 'Imagen para el cliente', cls: '', fn: () => compartirCita(c) });
+  b.push({ t: 'Imagen para el cliente', cls: '', fn: () => compartirCita(c) });
   if (ed) {
     if (c.estado === 'pendiente') b.push({ t: 'Confirmar', cls: '', fn: () => est('confirmada') });
     if (['pendiente', 'confirmada'].includes(c.estado)) {
@@ -2253,9 +2253,18 @@ function detalleCita(id) {
       if (!plan) b.push({ t: 'Cobrar', cls: 'ok', fn: () => cobrarCita(c) });
       b.push({ t: 'Completar', cls: 'pri', fn: () => est('completada') });
     }
+    if (c.estado === 'completada') b.push({ t: 'Deshacer completada', cls: '', fn: () => est('en_proceso', '¿Regresar esta cita a «En proceso»?' + (plan ? ' La sesión se devuelve al plan del cliente.' : '')) });
     if (c.estado === 'completada' && !plan) b.push({ t: 'Cobrar', cls: 'ok', fn: () => cobrarCita(c) });
     if (['cancelada', 'no_asistio'].includes(c.estado)) b.push({ t: 'Reactivar', cls: 'pri', fn: () => est('pendiente') });
   }
+  if (puede('admin')) b.push({ t: ico('trash') + ' Eliminar', cls: 'danger', fn: async () => {
+    const msg = '¿Eliminar esta cita de la agenda? No se puede deshacer.' + (c.estado === 'completada' ? (plan ? ' La sesión se devuelve al plan del cliente.' : ' Si ya se cobró, la venta no se borra: anúlala en Ventas › Historial si también fue un error.') : '');
+    if (!(await confirmar(msg, { si: 'Eliminar', peligro: 1 }))) return;
+    await api('eliminar', { entidad: 'Citas', id: c.id });
+    delete S.citaMap[c.id];
+    if (plan) await recargar(true);
+    cerrarModal(); toast('Cita eliminada', 'ok'); refrescarCitas();
+  } });
   modal('Detalle de la cita', html, b);
 }
 function cobrarCita(c) {
@@ -2844,7 +2853,14 @@ async function dibujarTarjeta(c) {
   med.font = '600 28px Inter, "Segoe UI", Arial, sans-serif';
   const anchoCol = (1080 - 180 - 80) * ((planT || num(c.precio) > 0) ? .44 : .6) - 24;
   const extra = Math.max(0, Math.min(4, lineas(med, descCita(c).split(' · plan')[0], anchoCol).length) - 2) * 36;
-  const W = 1080, H = 1350 + extra, cv = document.createElement('canvas');
+  // Notas de la cita y pie (dirección + teléfono): la imagen crece para que nada se encime
+  med.font = '400 26px Inter, "Segoe UI", Arial, sans-serif';
+  const notasL = c.notas ? lineas(med, String(c.notas).replace(/\s+/g, ' ').trim(), 820).slice(0, 3) : [];
+  const extraN = notasL.length ? 74 + notasL.length * 36 : 0;
+  med.font = '400 27px Inter, "Segoe UI", Arial, sans-serif';
+  const dirL = S.config.direccion ? lineas(med, S.config.direccion, 860).slice(0, 2) : [];
+  const pie = 138 + dirL.length * 38 + (S.config.telefono ? 40 : 0) + 122;
+  const W = 1080, H = Math.max(1350 + extra + extraN, 540 + 500 + extra + extraN + pie), cv = document.createElement('canvas');
   cv.width = W; cv.height = H;
   const x = cv.getContext('2d');
   const SERIF = '"Playfair Display", Georgia, serif', SANS = 'Inter, "Segoe UI", Arial, sans-serif';
@@ -2866,7 +2882,7 @@ async function dibujarTarjeta(c) {
   x.fillStyle = 'rgba(255,255,255,.84)'; x.font = `400 30px ${SANS}`;
   x.fillText('Tu espacio para consentirte ya está reservado', W / 2, 482);
   // Tarjeta blanca
-  const PX = 90, PY = 540, PW = W - 180, PH = 500 + extra;
+  const PX = 90, PY = 540, PW = W - 180, PH = 500 + extra + extraN;
   x.save(); x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 40; x.shadowOffsetY = 16;
   x.fillStyle = '#fffaf7'; rr(x, PX, PY, PW, PH, 30); x.fill(); x.restore();
   // Fecha
@@ -2907,13 +2923,23 @@ async function dibujarTarjeta(c) {
     x.fillStyle = '#2b1d24'; x.font = `600 28px ${SANS}`;
     lineas(x, f[1], colW - 24).slice(0, 4).forEach((l, k) => x.fillText(l, fx, y + 42 + k * 36));
   });
+  if (notasL.length) {
+    const NY = PY + 500 + extra - 24;
+    x.strokeStyle = '#ead9e0'; x.lineWidth = 2; x.beginPath(); x.moveTo(PX + 40, NY); x.lineTo(PX + PW - 40, NY); x.stroke();
+    x.fillStyle = '#9b8590'; x.font = `600 20px ${SANS}`;
+    try { x.letterSpacing = '3px'; } catch (e) {}
+    x.fillText('NOTAS', PX + 40, NY + 40);
+    try { x.letterSpacing = '0px'; } catch (e) {}
+    x.fillStyle = '#4a3a42'; x.font = `400 26px ${SANS}`;
+    notasL.forEach((l, k) => x.fillText(l, PX + 40, NY + 80 + k * 36));
+  }
   // Pie
   x.textAlign = 'center';
   let fy = PY + PH + 80;
   x.fillStyle = '#ffffff'; x.font = `italic 600 40px ${SERIF}`; x.fillText('¡Te esperamos!', W / 2, fy);
   fy += 58; x.fillStyle = 'rgba(255,255,255,.84)'; x.font = `400 27px ${SANS}`;
-  if (cfg.direccion) { lineas(x, cfg.direccion, 860).slice(0, 2).forEach(l => { x.fillText(l, W / 2, fy); fy += 38; }); }
-  if (cfg.telefono) { x.fillStyle = GOLD; x.font = `600 28px ${SANS}`; x.fillText('Tel. / WhatsApp ' + cfg.telefono, W / 2, fy); fy += 40; }
+  dirL.forEach(l => { x.fillText(l, W / 2, fy); fy += 38; });
+  if (cfg.telefono) { fy += 6; x.fillStyle = GOLD; x.font = `600 28px ${SANS}`; x.fillText('Tel. / WhatsApp ' + cfg.telefono, W / 2, fy); fy += 40; }
   x.fillStyle = 'rgba(255,255,255,.7)'; x.font = `400 22px ${SANS}`;
   x.fillText('Si necesitas cambiar tu cita, avísanos con tiempo.', W / 2, H - 82);
   return cv;
