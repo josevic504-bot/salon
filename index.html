@@ -501,7 +501,7 @@ const ESCRITURA = {
 /* ===================== ENTRADA HTTP ===================== */
 
 function doGet() {
-  return json_({ ok: true, app: 'Salón de Belleza', version: '1.0' });
+  return json_({ ok: true, app: 'Salón de Belleza', version: '3.0', funciones: 'promociones, logo, inicio' });
 }
 
 function doPost(e) {
@@ -1938,13 +1938,13 @@ async function vInicio() {
   try {
     let ini = S.inicioPre;
     if (!ini) {
-      try { ini = await api('inicio'); }
+      try { if (S.sinInicio) throw new Error('Acción no válida'); ini = await api('inicio'); }
       catch (e) {
         if (!/Acción no válida/.test(e.message)) throw e;
+        S.sinInicio = true;
         // Servidor con una versión anterior de Code.gs: se arma Inicio con las consultas de siempre
         const hasta = addDias(h, 7);
         ini = { citas: await api('citas', { desde: h + 'T00:00', hasta: hasta + 'T23:59' }), dash: null, aviso: null };
-        if (puede('admin') && !S.avisoServidor) { S.avisoServidor = 1; toast('Actualiza el Code.gs de tu Apps Script (Nueva versión) para tener todas las funciones', 'error'); }
       }
     }
     S.inicioPre = null;
@@ -2760,6 +2760,9 @@ function vAjustes() {
       <div class="logo-edit"><div class="logo-prev" id="lg-prev">${c.logo ? `<img src="${c.logo}" alt="Logo">` : 'Sin logo'}</div>
       <div class="row-btns"><label class="btn pri" style="cursor:pointer">${c.logo ? 'Cambiar logo' : 'Subir logo'}<input type="file" id="lg-file" accept="image/*" hidden></label>${c.logo ? '<button class="btn ghost" id="lg-del" type="button">Quitar</button>' : ''}</div>
       <p class="muted sm" style="flex-basis:100%;margin:0">Mejor en PNG con fondo transparente o blanco.</p></div></section>` : ''}
+    ${puede('admin') ? `<section class="card"><h3>Mi nombre</h3><p class="muted sm" style="margin:-4px 0 12px">Es el nombre que aparece en el saludo, en el menú y en las citas y comprobantes que atiendes.</p>
+      <form class="form" onsubmit="return false"><label class="f full">Nombre que se muestra<input class="input" id="mi-nom" maxlength="60" value="${esc(S.user.nombre || '')}" autocomplete="name"></label></form>
+      <div style="margin-top:14px"><button class="btn" id="mi-nom-save">Guardar nombre</button></div></section>` : ''}
     <section class="card"><h3>${MODO_CUENTAS ? 'Mi PIN' : 'Mi contraseña'}</h3><form class="form" onsubmit="return false">${(() => { const pa = MODO_CUENTAS ? ' inputmode="numeric" maxlength="6"' : ''; return `
       <label class="f full">${MODO_CUENTAS ? 'PIN actual' : 'Contraseña actual'}<input class="input" type="password" id="pw-a"${pa} autocomplete="current-password"></label>
       <label class="f">${MODO_CUENTAS ? 'Nuevo PIN' : 'Nueva'}<input class="input" type="password" id="pw-n"${pa} autocomplete="new-password"></label>
@@ -2793,6 +2796,16 @@ function vAjustes() {
     try { S.config = await api('guardar', { entidad: 'Config', registro: { tema: id } }, true); toast('Colores actualizados para todo el equipo', 'ok'); }
     catch (e) { aplicarTema(prev); $$('#v-ajustes [data-tema]').forEach(x => x.classList.toggle('on', x.dataset.tema === prev)); err(e); }
   });
+  if ($('#mi-nom-save')) $('#mi-nom-save').onclick = async () => {
+    try {
+      const nombre = $('#mi-nom').value.trim().replace(/\s+/g, ' ');
+      if (!nombre) throw new Error('Escribe tu nombre');
+      const yo = Object.assign({}, byId(S.usuarios, S.user.id) || S.user);
+      const g = await api('guardarUsuario', { registro: { id: yo.id, nombre, usuario: yo.usuario, rol: yo.rol, color: yo.color, activo: true } });
+      upsertLocal('usuarios', g); S.user = Object.assign(S.user, g); pintarNav();
+      toast('Nombre actualizado', 'ok');
+    } catch (e) { err(e); }
+  };
   if ($('#lg-file')) $('#lg-file').onchange = async e => {
     const f = e.target.files[0]; if (!f) return;
     try {
