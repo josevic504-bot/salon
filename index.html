@@ -276,6 +276,9 @@ body.reserva{background:radial-gradient(circle at 20% 0,var(--brand-l) 0,transpa
 .nov{display:flex;gap:12px;align-items:flex-start;padding:10px 2px;border-bottom:1px solid var(--border)}.nov:last-child{border:0}
 .nov i{font-style:normal;font-size:1.4rem;width:42px;height:42px;border-radius:12px;background:var(--brand-l);display:grid;place-items:center;flex:none}
 .nov small{display:block;color:var(--muted);line-height:1.35;margin-top:2px}
+.estilos{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.estilos button{border:2px solid transparent;border-radius:12px;padding:3px;background:none;cursor:pointer;font-size:.72rem;color:inherit;text-align:center}
+.estilos button.on{border-color:var(--brand)}.estilos canvas{width:100%;border-radius:9px;display:block;margin-bottom:3px;background:var(--bg);aspect-ratio:4/5}
 .temps{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px;margin-top:6px}
 .temp{border:2px solid transparent;border-radius:12px;padding:0;background:none;cursor:pointer;text-align:center;font-size:.72rem;color:inherit;line-height:1.2}
 .temp i{display:grid;place-items:center;height:46px;border-radius:10px;font-style:normal;font-size:1.35rem;background:linear-gradient(135deg,var(--t1),var(--t2),var(--t3));margin-bottom:4px;box-shadow:inset 0 0 0 2px var(--ta)}
@@ -530,12 +533,12 @@ const SCHEMA = {
   VentaDetalle:      ['id','ventaId','tipo','refId','descripcion','cantidad','precio','total'],
   Gastos:            ['id','fechaGasto','categoria','detalle','proveedor','monto','metodo','usuarioId','nota','anulado','creado'],
   Distribuciones:    ['id','mes','tipo','destino','detalle','monto','usuarioId','nota','anulado','creado'],
-  Promociones:       ['id','titulo','tipo','descuento','precio','precioAntes','incluye','descripcion','desde','hasta','condiciones','activo','creado','temporada'],
+  Promociones:       ['id','titulo','tipo','descuento','precio','precioAntes','incluye','descripcion','desde','hasta','condiciones','activo','creado','temporada','estilo','dibujo'],
   FichaTecnica:      ['id','clienteId','fecha','servicio','formula','notas','estilistaId','fotoAntes','fotoDespues','usuarioId','creado'],
   Config:            ['clave','valor']
 };
 const PREFIJO = { Usuarios:'U', Clientes:'C', Servicios:'S', Tratamientos:'T', PlanesTratamiento:'P', Productos:'R', Citas:'A', Ventas:'V', VentaDetalle:'D', Gastos:'G', Distribuciones:'Q', Promociones:'O', FichaTecnica:'F' };
-const NUMS = new Set(['duracion','precio','sesiones','intervaloDias','sesionesTotales','sesionesUsadas','pagado','costo','stock','stockMin','subtotal','descuento','isv','total','cantidad','monto','precioAntes']);
+const NUMS = new Set(['duracion','precio','sesiones','intervaloDias','sesionesTotales','sesionesUsadas','pagado','costo','stock','stockMin','subtotal','descuento','isv','total','cantidad','monto','precioAntes','estilo','dibujo']);
 const BOOLS = new Set(['activo','anulada','anulado']);
 const SOLO_FECHA = new Set(['cumpleanos','fechaInicio','fechaGasto','desde','hasta']);
 const TEXTO = new Set(['telefono','codigo','inicio','fin','fecha','fechaInicio','cumpleanos','creado','valor','fechaGasto','mes','desde','hasta']);
@@ -4130,6 +4133,8 @@ function editarPromo(p, plantilla) {
   const svcs = S.servicios.filter(s => s.activo).map(s => s.nombre).concat(S.tratamientos.filter(t => t.activo).map(t => t.nombre));
   modal(nuevo ? 'Nueva promoción' : 'Editar promoción', `<form class="form" onsubmit="return false">
     <div class="f full">Diseño de la tarjeta<div class="temps" id="po-temps">${[{ id: '', n: 'Colores del salón', e: '✨', bg: T0.img, ac: T0.oro }].concat(TEMPORADAS).map(t => `<button type="button" class="temp ${t.id === (p.temporada || '') ? 'on' : ''}" data-tp="${t.id}" style="--t1:${t.bg[0]};--t2:${t.bg[1]};--t3:${t.bg[2]};--ta:${hexA(t.ac, .6)}"><i>${t.e}</i><span>${esc(t.n)}</span></button>`).join('')}</div></div>
+    <div class="f full">Dibujos<div class="estilos" id="po-dib">${[0, 1, 2, 3].map(i => `<button type="button" data-di="${i}" class="${i === (Number(p.dibujo) || 0) ? 'on' : ''}"><canvas width="216" height="270"></canvas>${i ? 'Opción ' + (i + 1) : 'Original'}</button>`).join('')}</div></div>
+    <div class="f full">Colores<div class="estilos" id="po-est">${ESTILOS_PROMO.map((n, i) => `<button type="button" data-es="${i}" class="${i === (Number(p.estilo) || 0) ? 'on' : ''}"><canvas width="216" height="270"></canvas>${n}</button>`).join('')}</div></div>
     <label class="f full">Título de la promoción *<input class="input" id="po-tit" maxlength="60" value="${esc(p.titulo || '')}" placeholder="Ej. Mes de la mamá"></label>
     <label class="f">Tipo de oferta<select class="input" id="po-tipo">${Object.keys(TIPOS_PROMO).map(k => `<option value="${k}" ${k === p.tipo ? 'selected' : ''}>${TIPOS_PROMO[k]}</option>`).join('')}</select></label>
     <label class="f" data-po="porcentaje">Descuento (%) *<input class="input" id="po-desc" type="number" min="1" max="100" inputmode="decimal" value="${esc(p.descuento || '')}" placeholder="20"></label>
@@ -4145,19 +4150,31 @@ function editarPromo(p, plantilla) {
     { t: 'Guardar', cls: '', fn: () => guardar(false) },
     { t: 'Guardar y ver tarjeta', cls: 'pri', fn: () => guardar(true) }
   ]);
-  let tempSel = p.temporada || '';
+  let tempSel = p.temporada || '', estSel = Number(p.estilo) || 0, dibSel = Number(p.dibujo) || 0, tMini = 0;
+  const miniaturas = () => { clearTimeout(tMini); tMini = setTimeout(async () => {
+    const base = { id: p.id || 'nueva', temporada: tempSel, titulo: ($('#po-tit') || {}).value || 'Tu promoción', tipo: ($('#po-tipo') || {}).value || 'porcentaje',
+      descuento: num(($('#po-desc') || {}).value) || 20, precio: num(($('#po-precio') || {}).value) || 450, precioAntes: num(($('#po-antes') || {}).value),
+      incluye: ($('#po-inc') || {}).value || '', descripcion: '', desde: ($('#po-ini') || {}).value, hasta: ($('#po-fin') || {}).value };
+    const pinta = async (b, extra) => { const cv = await dibujarPromo(Object.assign({}, base, extra)), m = b.querySelector('canvas'); if (!m) return; const k = m.getContext('2d'); k.clearRect(0, 0, m.width, m.height); k.drawImage(cv, 0, 0, m.width, m.height); };
+    for (const b of $$('#po-dib [data-di]')) await pinta(b, { dibujo: Number(b.dataset.di), estilo: estSel });
+    for (const b of $$('#po-est [data-es]')) await pinta(b, { dibujo: dibSel, estilo: Number(b.dataset.es) });
+  }, 250); };
+  $$('#po-est [data-es]').forEach(b => b.onclick = () => { estSel = Number(b.dataset.es); $$('#po-est [data-es]').forEach(x => x.classList.toggle('on', x === b)); miniaturas(); });
+  $$('#po-dib [data-di]').forEach(b => b.onclick = () => { dibSel = Number(b.dataset.di); $$('#po-dib [data-di]').forEach(x => x.classList.toggle('on', x === b)); miniaturas(); });
+  ['#po-tit', '#po-desc', '#po-precio', '#po-antes', '#po-inc'].forEach(s => { const e = $(s); if (e) e.addEventListener('input', miniaturas); });
   $$('#po-temps [data-tp]').forEach(b => b.onclick = () => {
     tempSel = b.dataset.tp; $$('#po-temps .temp').forEach(x => x.classList.toggle('on', x === b));
     const t = temporada(tempSel);
     if (t && !$('#po-tit').value.trim()) $('#po-tit').value = t.tit;
     if (t && !$('#po-des').value.trim()) $('#po-des').value = t.desc;
+    miniaturas();
   });
   const tipo = () => $('#po-tipo').value;
   const ver = () => $$('[data-po]').forEach(l => { l.hidden = l.dataset.po !== tipo(); });
-  $('#po-tipo').onchange = ver; ver();
+  $('#po-tipo').onchange = () => { ver(); miniaturas(); }; ver(); miniaturas();
   $$('[data-sv]').forEach(b => b.onclick = () => { const i = $('#po-inc'), v = i.value.trim(); if (!v.split(/\s*[+,]\s*/).includes(b.dataset.sv)) i.value = v ? v + ' + ' + b.dataset.sv : b.dataset.sv; });
   async function guardar(verTarjeta) {
-    const reg = { id: p.id, temporada: tempSel, titulo: $('#po-tit').value.trim(), tipo: tipo(), descuento: num($('#po-desc').value), precio: num($('#po-precio').value), precioAntes: num($('#po-antes').value),
+    const reg = { id: p.id, temporada: tempSel, estilo: estSel, dibujo: dibSel, titulo: $('#po-tit').value.trim(), tipo: tipo(), descuento: num($('#po-desc').value), precio: num($('#po-precio').value), precioAntes: num($('#po-antes').value),
       incluye: $('#po-inc').value.trim(), descripcion: $('#po-des').value.trim(), desde: $('#po-ini').value, hasta: $('#po-fin').value, condiciones: $('#po-cond').value.trim(), activo: $('#po-act').checked };
     if (!reg.titulo) throw new Error('Escribe el título de la promoción');
     if (reg.tipo === 'porcentaje' && !(reg.descuento > 0 && reg.descuento <= 100)) throw new Error('El descuento debe ser de 1 a 100%');
@@ -4258,8 +4275,36 @@ function proximasTemporadas(dias) {
 // Paleta de la tarjeta: la temporada elegida o los colores del salón
 function paletaPromo(p) {
   const t = temporada(p.temporada), T = temaActual();
-  if (!t) return { bg: T.img, ac: T.oro, med: ['#fff7ea', T.oro], mt: T.d, tinta: '#ffffff', tinta2: 'rgba(255,255,255,.86)', rot: 'PROMOCIÓN ESPECIAL', deco: null, c: [T.oro] };
-  return Object.assign({ tinta: '#ffffff', tinta2: 'rgba(255,255,255,.86)' }, t);
+  const base = !t ? { bg: T.img, ac: T.oro, med: ['#fff7ea', T.oro], mt: T.d, tinta: '#ffffff', tinta2: 'rgba(255,255,255,.86)', rot: 'PROMOCIÓN ESPECIAL', deco: null, c: [T.oro] }
+    : Object.assign({ tinta: '#ffffff', tinta2: 'rgba(255,255,255,.86)' }, t);
+  base.tid = t ? t.id : ''; base.dibujo = Number(p.dibujo) || 0;
+  return estiloPromo(base, Number(p.estilo) || 0);
+}
+const ESTILOS_PROMO = ['Clásico', 'Pastel', 'Lujo', 'Moderno'];
+function mezcla(a, b, t) {
+  const A = parseInt(a.slice(1), 16), B = parseInt(b.slice(1), 16), f = (s) => Math.round(((A >> s) & 255) * (1 - t) + ((B >> s) & 255) * t);
+  return '#' + [16, 8, 0].map(s => ('0' + f(s).toString(16)).slice(-2)).join('');
+}
+// 4 estilos por temporada: Clásico (original), Pastel (claro), Lujo (negro con acentos) y Moderno (franja de color + fondo claro)
+function estiloPromo(P, e) {
+  const claro = P.tinta !== '#ffffff';
+  if (e === 1) {
+    const lum = c => { const n = parseInt(c.slice(1), 16); return ((n >> 16 & 255) * .299 + (n >> 8 & 255) * .587 + (n & 255) * .114) / 255; };
+    const oscura = !claro && lum(P.bg[1]) < .2, F = oscura ? [P.ac, P.ac, mezcla(P.ac, '#000000', .2)] : P.bg;
+    const osc = claro ? P.tinta : P.bg[0];
+    return Object.assign({}, P, { bg: [mezcla(F[2], '#ffffff', .86), mezcla(F[1], '#ffffff', .78), mezcla(F[2], '#ffffff', .62)],
+      ac: claro ? P.ac : oscura ? mezcla(P.ac, '#000000', .35) : P.bg[1], tinta: osc, tinta2: hexA(osc, .78), med: ['#ffffff', mezcla(F[2], '#ffffff', .5)], mt: osc, pill: 'rgba(255,255,255,.55)',
+      blanco: P.bg[1], c: P.c.map(c => c.toLowerCase() === '#ffffff' ? P.bg[1] : c) });
+  }
+  if (e === 2) {
+    const ac = claro ? P.c[0] : P.ac;
+    return Object.assign({}, P, { bg: ['#0a090c', '#16131a', mezcla(claro ? P.ac : P.bg[0], '#000000', .45)], ac, tinta: '#ffffff', tinta2: 'rgba(255,255,255,.8)',
+      med: ['#2d2731', '#0f0e12'], mt: ac, medAro: ac, pill: 'rgba(255,255,255,.05)' });
+  }
+  if (e === 3) {
+    return Object.assign({}, P, { modo: 'moderno', tintaSup: P.tinta, tinta: '#2b1d24', tinta2: 'rgba(43,29,36,.76)', acInf: claro ? P.ac : P.bg[1], pill: hexA(claro ? P.ac : P.bg[1], .08) });
+  }
+  return P;
 }
 function azar(semilla) { let s = semilla | 0; return () => { s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 /* Motivos dibujados a mano (sin imágenes externas) */
@@ -4342,8 +4387,265 @@ const M = {
     x.restore();
   }
 };
+/* ===================== DIBUJOS EXTRA POR TEMPORADA (3 escenas más por fecha) ===================== */
+const D = {
+  _(x, cx, cy, s, rot, a, fn) { x.save(); x.globalAlpha = a === undefined ? 1 : a; x.translate(cx, cy); if (rot) x.rotate(rot); x.scale(s * 1.65 / 100, s * 1.65 / 100); fn(); x.restore(); },
+  circ(x, X, Y, r, col) { x.fillStyle = col; x.beginPath(); x.arc(X, Y, r, 0, Math.PI * 2); x.fill(); },
+  ojos(x, dx, y, r, col) { D.circ(x, -dx, y, r, col || '#2b1a1a'); D.circ(x, dx, y, r, col || '#2b1a1a'); D.circ(x, -dx + r * .35, y - r * .35, r * .35, '#fff'); D.circ(x, dx + r * .35, y - r * .35, r * .35, '#fff'); },
+  mejillas(x, dx, y) { x.globalAlpha *= .55; D.circ(x, -dx, y, 7, '#ff8fa3'); D.circ(x, dx, y, 7, '#ff8fa3'); x.globalAlpha /= .55; },
+  // ---- Halloween
+  calabaza(x, cx, cy, s, rot, a, cara) { D._(x, cx, cy, s, rot, a, () => {
+    x.fillStyle = '#3f7d2b'; x.beginPath(); x.moveTo(-4, -42); x.quadraticCurveTo(2, -62, 14, -64); x.lineTo(14, -56); x.quadraticCurveTo(8, -52, 6, -40); x.fill();
+    [['#e8711a', -26, 30], ['#e8711a', 26, 30], ['#ff8c25', -12, 36], ['#ff8c25', 12, 36], ['#ff9d3a', 0, 38]].forEach(([c, dx, rx]) => { x.fillStyle = c; x.beginPath(); x.ellipse(dx, 0, rx, 44, 0, 0, Math.PI * 2); x.fill(); });
+    if (cara !== false) { x.fillStyle = '#4a2208'; x.beginPath(); x.moveTo(-22, -10); x.lineTo(-10, -10); x.lineTo(-16, -22); x.fill(); x.beginPath(); x.moveTo(22, -10); x.lineTo(10, -10); x.lineTo(16, -22); x.fill();
+      x.beginPath(); x.moveTo(-26, 6); x.quadraticCurveTo(0, 30, 26, 6); x.quadraticCurveTo(0, 18, -26, 6); x.fill(); D.mejillas(x, 30, 2); }
+  }); },
+  fantasma(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => {
+    x.fillStyle = '#fbf8ff'; x.shadowColor = 'rgba(255,255,255,.6)'; x.shadowBlur = 20; x.beginPath(); x.moveTo(-38, 40); x.lineTo(-38, -10); x.bezierCurveTo(-38, -62, 38, -62, 38, -10); x.lineTo(38, 40);
+    for (let i = 0; i < 4; i++) { const X0 = 38 - i * 19; x.quadraticCurveTo(X0 - 5, 54, X0 - 10, 40); x.quadraticCurveTo(X0 - 14, 30, X0 - 19, 40); } x.closePath(); x.fill(); x.shadowBlur = 0;
+    D.circ(x, -13, -12, 6, '#2b1a2e'); D.circ(x, 13, -12, 6, '#2b1a2e'); D.circ(x, -11, -14, 2, '#fff'); D.circ(x, 15, -14, 2, '#fff');
+    x.fillStyle = '#2b1a2e'; x.beginPath(); x.ellipse(0, 4, 5, 6, 0, 0, Math.PI * 2); x.fill(); D.mejillas(x, 22, 0);
+  }); },
+  esqueleto(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => {
+    x.strokeStyle = '#f7f3ea'; x.lineCap = 'round'; x.lineWidth = 6;
+    x.beginPath(); x.moveTo(0, 12); x.lineTo(0, 52); x.stroke();
+    [22, 32, 42].forEach((y, i) => { x.beginPath(); x.ellipse(0, y, 15 - i * 2, 4, 0, Math.PI, 0); x.stroke(); });
+    x.beginPath(); x.moveTo(-6, 18); x.lineTo(-26, 4); x.lineTo(-32, -10); x.moveTo(6, 18); x.lineTo(26, 30); x.lineTo(36, 26); x.stroke();
+    x.beginPath(); x.moveTo(-3, 54); x.lineTo(-12, 80); x.moveTo(3, 54); x.lineTo(12, 80); x.stroke();
+    D.circ(x, -32, -12, 5, '#f7f3ea'); D.circ(x, 37, 25, 5, '#f7f3ea'); x.fillStyle = '#f7f3ea'; x.beginPath(); x.ellipse(-14, 82, 8, 4, 0, 0, Math.PI * 2); x.ellipse(14, 82, 8, 4, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#f7f3ea'; x.beginPath(); x.arc(0, -18, 30, 0, Math.PI * 2); x.fill(); x.fillRect(-16, 2, 32, 12);
+    D.circ(x, -11, -20, 9, '#2b1a2e'); D.circ(x, 11, -20, 9, '#2b1a2e'); D.circ(x, -8, -23, 3, '#fff'); D.circ(x, 14, -23, 3, '#fff');
+    x.fillStyle = '#2b1a2e'; x.beginPath(); x.moveTo(-3, -4); x.lineTo(3, -4); x.lineTo(0, -9); x.fill();
+    x.strokeStyle = '#2b1a2e'; x.lineWidth = 2; for (let i = -10; i <= 10; i += 5) { x.beginPath(); x.moveTo(i, 4); x.lineTo(i, 12); x.stroke(); } D.mejillas(x, 20, -6);
+  }); },
+  bruja(x, cx, cy, s, rot, a, col) { D._(x, cx, cy, s, rot, a, () => {
+    const c = col || '#1a0d26'; x.fillStyle = c; x.strokeStyle = c; x.lineCap = 'round';
+    x.lineWidth = 6; x.beginPath(); x.moveTo(-90, 30); x.lineTo(70, -8); x.stroke();
+    x.beginPath(); x.moveTo(-88, 30); x.lineTo(-128, 12); x.lineTo(-132, 34); x.lineTo(-128, 52); x.closePath(); x.fill();
+    x.beginPath(); x.moveTo(-36, 18); x.quadraticCurveTo(-60, 42, -84, 34); x.quadraticCurveTo(-52, 6, -20, -6); x.fill();
+    x.beginPath(); x.moveTo(-20, 22); x.quadraticCurveTo(-2, -20, 12, -26); x.lineTo(26, 2); x.quadraticCurveTo(12, 18, -20, 22); x.fill();
+    D.circ(x, 18, -38, 14, c); x.beginPath(); x.moveTo(-4, -46); x.lineTo(40, -46); x.lineTo(12, -100); x.quadraticCurveTo(26, -70, 8, -94); x.closePath(); x.fill();
+    x.beginPath(); x.ellipse(18, -46, 30, 6, -.1, 0, Math.PI * 2); x.fill();
+    x.lineWidth = 5; x.beginPath(); x.moveTo(20, -14); x.lineTo(44, -2); x.stroke(); x.beginPath(); x.moveTo(-2, 14); x.lineTo(8, 34); x.lineTo(20, 32); x.stroke();
+  }); },
+  telarana(x, cx, cy, r, ang0, col, a) { x.save(); x.globalAlpha = a; x.strokeStyle = col; x.lineWidth = 1.6; const n = 6, A = Math.PI / 2;
+    for (let i = 0; i <= n; i++) { const an = ang0 + A * i / n; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + Math.cos(an) * r, cy + Math.sin(an) * r); x.stroke(); }
+    for (let k = 1; k <= 4; k++) { const rr2 = r * k / 4.4; x.beginPath(); for (let i = 0; i <= n; i++) { const an = ang0 + A * i / n, q = i ? .9 : 1; x.lineTo(cx + Math.cos(an) * rr2 * q, cy + Math.sin(an) * rr2 * q); } x.stroke(); }
+    x.restore(); },
+  arana(x, cx, cy, s, a) { D._(x, cx, cy, s, 0, a, () => { x.strokeStyle = '#1a0d26'; x.lineWidth = 2; x.beginPath(); x.moveTo(0, -120); x.lineTo(0, -14); x.stroke();
+    x.lineWidth = 4; for (let i = 0; i < 4; i++) { [-1, 1].forEach(sg => { x.beginPath(); x.moveTo(0, 0); x.quadraticCurveTo(sg * 22, -14 + i * 8, sg * 30, 6 + i * 8); x.stroke(); }); }
+    D.circ(x, 0, 0, 16, '#1a0d26'); D.ojos(x, 6, -2, 4, '#fff'); D.circ(x, -6, -2, 2, '#1a0d26'); D.circ(x, 6, -2, 2, '#1a0d26'); }); },
+  dulce(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = col; x.beginPath(); x.moveTo(-26, 0); x.lineTo(-44, -14); x.lineTo(-44, 14); x.fill(); x.beginPath(); x.moveTo(26, 0); x.lineTo(44, -14); x.lineTo(44, 14); x.fill();
+    x.beginPath(); x.ellipse(0, 0, 28, 20, 0, 0, Math.PI * 2); x.fill(); x.strokeStyle = 'rgba(255,255,255,.7)'; x.lineWidth = 5; x.beginPath(); x.moveTo(-12, -16); x.lineTo(-2, 16); x.moveTo(6, -18); x.lineTo(16, 14); x.stroke(); }); },
+  caldero(x, cx, cy, s, a) { D._(x, cx, cy, s, 0, a, () => { ['#7cff6b', '#a6ff8f', '#7cff6b'].forEach((c, i) => D.circ(x, -20 + i * 20, -34 - (i % 2) * 8, 12, c)); D.circ(x, 6, -60, 7, '#a6ff8f'); D.circ(x, -8, -72, 5, '#a6ff8f');
+    x.fillStyle = '#1e1a22'; x.beginPath(); x.ellipse(0, 0, 46, 38, 0, 0, Math.PI * 2); x.fill(); x.fillStyle = '#2e2933'; x.beginPath(); x.ellipse(0, -30, 46, 10, 0, 0, Math.PI * 2); x.fill(); x.fillStyle = '#7cff6b'; x.beginPath(); x.ellipse(0, -30, 38, 6, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#1e1a22'; x.fillRect(-36, 30, 10, 14); x.fillRect(26, 30, 10, 14); }); },
+  // ---- Navidad
+  arbol(x, cx, cy, s, a, ac) { D._(x, cx, cy, s, 0, a, () => { x.fillStyle = '#6b3d1e'; x.fillRect(-9, 50, 18, 20);
+    [[-54, 54, 10], [-44, 18, -22], [-32, -14, -52]].forEach(([w, y, top], i) => { x.fillStyle = ['#1f7a45', '#24924f', '#2aa75a'][i]; x.beginPath(); x.moveTo(w, y); x.lineTo(-w, y); x.lineTo(0, top - 22); x.fill(); });
+    ['#ff4d6d', '#ffd166', '#4cc9f0', '#ff4d6d', '#ffd166'].forEach((c, i) => D.circ(x, [-24, 18, -8, 26, 6][i], [40, 34, 6, 6, -26][i], 5, c));
+    M.estrella(x, 0, -76, 14, ac || '#ffd166', 1); }); },
+  muneco(x, cx, cy, s, a) { D._(x, cx, cy, s, 0, a, () => { D.circ(x, 0, 34, 36, '#ffffff'); D.circ(x, 0, -18, 26, '#ffffff');
+    x.fillStyle = '#d62839'; x.fillRect(-26, -2, 52, 9); x.fillRect(10, 2, 9, 26); D.ojos(x, 9, -24, 3.5);
+    x.fillStyle = '#ff8c25'; x.beginPath(); x.moveTo(0, -16); x.lineTo(22, -12); x.lineTo(0, -10); x.fill();
+    x.fillStyle = '#1b1b24'; x.fillRect(-22, -46, 44, 6); x.fillRect(-14, -74, 28, 30); D.circ(x, 0, 22, 3.5, '#1b1b24'); D.circ(x, 0, 38, 3.5, '#1b1b24'); D.mejillas(x, 16, -14);
+    x.strokeStyle = '#6b3d1e'; x.lineWidth = 3; x.lineCap = 'round'; x.beginPath(); x.moveTo(-34, 26); x.lineTo(-60, 6); x.moveTo(34, 26); x.lineTo(60, 8); x.stroke(); }); },
+  regalo(x, cx, cy, s, rot, col, cinta, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = col; x.fillRect(-36, -20, 72, 56); x.fillStyle = mezcla(col, '#000000', .15); x.fillRect(-40, -32, 80, 16);
+    x.fillStyle = cinta; x.fillRect(-7, -32, 14, 68); x.beginPath(); x.ellipse(-14, -40, 14, 9, -.5, 0, Math.PI * 2); x.ellipse(14, -40, 14, 9, .5, 0, Math.PI * 2); x.fill(); D.circ(x, 0, -36, 6, cinta); }); },
+  baston(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => { const camino = () => { x.beginPath(); x.moveTo(0, 60); x.lineTo(0, -30); x.arc(-18, -30, 18, 0, Math.PI, true); };
+    x.lineCap = 'round'; x.lineWidth = 16; x.strokeStyle = '#ffffff'; camino(); x.stroke(); x.setLineDash([10, 12]); x.strokeStyle = '#e63946'; camino(); x.stroke(); x.setLineDash([]); }); },
+  gorroSanta(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = '#d62839'; x.beginPath(); x.moveTo(-40, 20); x.quadraticCurveTo(-10, -60, 40, -40); x.quadraticCurveTo(30, -10, 40, 20); x.fill();
+    x.fillStyle = '#fff'; x.beginPath(); x.ellipse(0, 22, 46, 12, 0, 0, Math.PI * 2); x.fill(); D.circ(x, 44, -42, 12, '#fff'); }); },
+  acebo(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = '#1f7a45'; [-.5, .5].forEach(r => { x.save(); x.rotate(r); x.beginPath(); x.ellipse(0, -30, 14, 30, 0, 0, Math.PI * 2); x.fill(); x.restore(); }); [[-6, 0], [8, -2], [1, 10]].forEach(([X, Y]) => D.circ(x, X, Y, 8, '#e63946')); }); },
+  // ---- Flores, amor y mujer
+  rosa(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = '#2f7d4f'; x.beginPath(); x.ellipse(-30, 30, 12, 26, -.9, 0, Math.PI * 2); x.ellipse(30, 30, 12, 26, .9, 0, Math.PI * 2); x.fill();
+    x.fillStyle = col; x.beginPath(); x.arc(0, 0, 38, 0, Math.PI * 2); x.fill(); x.strokeStyle = mezcla(col, '#000000', .25); x.lineWidth = 4; x.lineCap = 'round';
+    for (let k = 0; k < 4; k++) { x.beginPath(); x.arc(k % 2 ? 3 : -3, k % 2 ? -2 : 2, 30 - k * 8, k * 1.4, k * 1.4 + Math.PI * 1.3); x.stroke(); } }); },
+  tulipan(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.strokeStyle = '#2f7d4f'; x.lineWidth = 6; x.beginPath(); x.moveTo(0, 0); x.quadraticCurveTo(4, 50, 0, 90); x.stroke();
+    x.fillStyle = '#2f7d4f'; x.beginPath(); x.ellipse(-16, 60, 8, 26, -.5, 0, Math.PI * 2); x.fill();
+    x.fillStyle = col; x.beginPath(); x.moveTo(-26, -40); x.lineTo(-12, -20); x.lineTo(0, -44); x.lineTo(12, -20); x.lineTo(26, -40); x.quadraticCurveTo(30, 6, 0, 6); x.quadraticCurveTo(-30, 6, -26, -40); x.fill();
+    x.fillStyle = mezcla(col, '#ffffff', .3); x.beginPath(); x.moveTo(0, -44); x.lineTo(10, -16); x.quadraticCurveTo(0, 0, -10, -16); x.fill(); }); },
+  mariposa(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { [-1, 1].forEach(sg => { x.fillStyle = col; x.beginPath(); x.ellipse(sg * 22, -14, 22, 28, sg * .5, 0, Math.PI * 2); x.fill();
+    x.fillStyle = mezcla(col, '#ffffff', .35); x.beginPath(); x.ellipse(sg * 18, 18, 14, 18, -sg * .5, 0, Math.PI * 2); x.fill(); D.circ(x, sg * 22, -18, 7, 'rgba(255,255,255,.7)'); });
+    x.fillStyle = '#2b1d24'; x.beginPath(); x.ellipse(0, 0, 5, 26, 0, 0, Math.PI * 2); x.fill(); x.strokeStyle = '#2b1d24'; x.lineWidth = 2; x.beginPath(); x.moveTo(-2, -24); x.quadraticCurveTo(-10, -40, -14, -40); x.moveTo(2, -24); x.quadraticCurveTo(10, -40, 14, -40); x.stroke(); }); },
+  carta(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = '#fff7f2'; x.fillRect(-46, -30, 92, 62); x.strokeStyle = '#e8c9c0'; x.lineWidth = 3; x.beginPath(); x.moveTo(-46, -30); x.lineTo(0, 6); x.lineTo(46, -30); x.stroke(); M.corazon(x, 0, 6, 34, col, 1); }); },
+  flechaCupido(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { M.corazon(x, 0, 0, 90, col, 1); x.strokeStyle = '#f3d27a'; x.lineWidth = 5; x.beginPath(); x.moveTo(-70, 30); x.lineTo(70, -30); x.stroke();
+    x.fillStyle = '#f3d27a'; x.beginPath(); x.moveTo(74, -32); x.lineTo(58, -36); x.lineTo(64, -22); x.fill(); x.beginPath(); x.moveTo(-70, 30); x.lineTo(-82, 22); x.lineTo(-78, 38); x.fill(); }); },
+  labios(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = col; x.beginPath(); x.moveTo(-40, 0); x.quadraticCurveTo(-20, -24, 0, -10); x.quadraticCurveTo(20, -24, 40, 0); x.quadraticCurveTo(0, 34, -40, 0); x.fill();
+    x.strokeStyle = mezcla(col, '#000000', .3); x.lineWidth = 3; x.beginPath(); x.moveTo(-36, 0); x.quadraticCurveTo(0, 8, 36, 0); x.stroke(); }); },
+  labial(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = '#d9b779'; x.fillRect(-16, -10, 32, 30); x.fillStyle = '#2b1d24'; x.fillRect(-18, 20, 36, 46);
+    x.fillStyle = col; x.beginPath(); x.moveTo(-12, -10); x.lineTo(-12, -40); x.lineTo(12, -52); x.lineTo(12, -10); x.fill(); }); },
+  esmalte(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = '#2b1d24'; x.fillRect(-10, -70, 20, 40); x.fillStyle = col; x.beginPath(); x.moveTo(-26, -30); x.lineTo(26, -30); x.quadraticCurveTo(34, 30, 20, 34); x.lineTo(-20, 34); x.quadraticCurveTo(-34, 30, -26, -30); x.fill();
+    x.fillStyle = 'rgba(255,255,255,.45)'; x.fillRect(-16, -20, 7, 40); }); },
+  venus(x, cx, cy, s, col, a) { D._(x, cx, cy, s, 0, a, () => { x.strokeStyle = col; x.lineWidth = 10; x.lineCap = 'round'; x.beginPath(); x.arc(0, -16, 28, 0, Math.PI * 2); x.moveTo(0, 12); x.lineTo(0, 56); x.moveTo(-18, 36); x.lineTo(18, 36); x.stroke(); }); },
+  // ---- Padre y barbería
+  corbata(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = col; x.beginPath(); x.moveTo(-12, -44); x.lineTo(12, -44); x.lineTo(8, -30); x.lineTo(-8, -30); x.fill();
+    x.beginPath(); x.moveTo(-8, -30); x.lineTo(8, -30); x.lineTo(20, 40); x.lineTo(0, 58); x.lineTo(-20, 40); x.fill(); x.strokeStyle = 'rgba(255,255,255,.35)'; x.lineWidth = 4;
+    for (let i = 0; i < 4; i++) { x.beginPath(); x.moveTo(-14, -10 + i * 16); x.lineTo(14, -22 + i * 16); x.stroke(); } }); },
+  bigote(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = col; x.beginPath(); x.moveTo(0, -6); x.bezierCurveTo(-20, -24, -46, -12, -60, -20); x.bezierCurveTo(-56, 4, -28, 16, 0, 2);
+    x.bezierCurveTo(28, 16, 56, 4, 60, -20); x.bezierCurveTo(46, -12, 20, -24, 0, -6); x.fill(); }); },
+  postebarbero(x, cx, cy, s, a) { D._(x, cx, cy, s, 0, a, () => { x.fillStyle = '#d9b779'; x.fillRect(-20, -70, 40, 12); x.fillRect(-20, 58, 40, 12); x.save(); x.beginPath(); x.rect(-14, -58, 28, 116); x.clip(); x.fillStyle = '#fff'; x.fillRect(-14, -58, 28, 116);
+    for (let i = -6; i < 8; i++) { x.fillStyle = i % 2 ? '#d62839' : '#1d4ed8'; x.beginPath(); x.moveTo(-14, i * 20); x.lineTo(14, i * 20 - 18); x.lineTo(14, i * 20 - 10); x.lineTo(-14, i * 20 + 8); x.fill(); } x.restore(); }); },
+  tijeras(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.strokeStyle = col; x.lineWidth = 7; x.lineCap = 'round'; x.beginPath(); x.arc(-26, 34, 14, 0, Math.PI * 2); x.stroke(); x.beginPath(); x.arc(26, 34, 14, 0, Math.PI * 2); x.stroke();
+    x.beginPath(); x.moveTo(-16, 24); x.lineTo(30, -50); x.moveTo(16, 24); x.lineTo(-30, -50); x.stroke(); D.circ(x, 0, 6, 5, col); }); },
+  peine(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = col; x.fillRect(-60, -10, 120, 14); for (let i = -56; i <= 56; i += 9) x.fillRect(i, 4, 4, 22); }); },
+  secador(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = col; x.beginPath(); x.ellipse(0, 0, 44, 30, 0, 0, Math.PI * 2); x.fill(); x.fillRect(30, -18, 34, 36); x.fillRect(-14, 18, 24, 56);
+    D.circ(x, -8, 0, 16, 'rgba(255,255,255,.35)'); x.strokeStyle = 'rgba(255,255,255,.6)'; x.lineWidth = 3; [0, 1, 2].forEach(i => { x.beginPath(); x.moveTo(72, -12 + i * 12); x.lineTo(92, -12 + i * 12); x.stroke(); }); }); },
+  // ---- Verano y día a día
+  palmera(x, cx, cy, s, a) { D._(x, cx, cy, s, 0, a, () => { x.strokeStyle = '#8a5a2b'; x.lineWidth = 12; x.lineCap = 'round'; x.beginPath(); x.moveTo(0, 90); x.quadraticCurveTo(14, 30, 0, -30); x.stroke();
+    x.fillStyle = '#2aa75a'; [-2.6, -2, -1.2, -.5, .2].forEach(r => { x.save(); x.translate(0, -30); x.rotate(r); x.beginPath(); x.ellipse(36, 0, 40, 10, 0, 0, Math.PI * 2); x.fill(); x.restore(); });
+    D.circ(x, -6, -24, 8, '#8a5a2b'); D.circ(x, 8, -22, 8, '#8a5a2b'); }); },
+  gafas(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = col; x.beginPath(); x.ellipse(-30, 0, 26, 20, 0, 0, Math.PI * 2); x.ellipse(30, 0, 26, 20, 0, 0, Math.PI * 2); x.fill();
+    x.strokeStyle = col; x.lineWidth = 6; x.beginPath(); x.moveTo(-6, -4); x.quadraticCurveTo(0, -10, 6, -4); x.stroke(); D.circ(x, -38, -6, 5, 'rgba(255,255,255,.6)'); D.circ(x, 22, -6, 5, 'rgba(255,255,255,.6)'); }); },
+  helado(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = '#e8b06a'; x.beginPath(); x.moveTo(-22, 0); x.lineTo(22, 0); x.lineTo(0, 64); x.fill();
+    D.circ(x, -12, -6, 18, '#ff8fab'); D.circ(x, 12, -6, 18, '#a8e6cf'); D.circ(x, 0, -26, 18, '#ffd166'); D.circ(x, 4, -46, 6, '#e63946'); }); },
+  concha(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = col; x.beginPath(); x.moveTo(0, 30); for (let i = 0; i <= 6; i++) { const an = Math.PI + i * Math.PI / 6; x.lineTo(Math.cos(an) * 44, Math.sin(an) * 40 + 4); } x.closePath(); x.fill();
+    x.strokeStyle = mezcla(col, '#000000', .2); x.lineWidth = 2; for (let i = 1; i < 6; i++) { const an = Math.PI + i * Math.PI / 6; x.beginPath(); x.moveTo(0, 30); x.lineTo(Math.cos(an) * 42, Math.sin(an) * 38 + 4); x.stroke(); } }); },
+  taza(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.strokeStyle = 'rgba(255,255,255,.7)'; x.lineWidth = 4; x.lineCap = 'round'; [-10, 6].forEach(X => { x.beginPath(); x.moveTo(X, -30); x.bezierCurveTo(X - 10, -44, X + 10, -52, X, -66); x.stroke(); });
+    x.fillStyle = col; x.beginPath(); x.moveTo(-34, -22); x.lineTo(34, -22); x.lineTo(28, 30); x.quadraticCurveTo(0, 40, -28, 30); x.fill(); x.strokeStyle = col; x.lineWidth = 7; x.beginPath(); x.arc(38, 2, 13, -Math.PI / 2, Math.PI / 2); x.stroke(); M.corazon(x, 0, 6, 26, '#fff', .85); }); },
+  lapiz(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = '#ffd166'; x.fillRect(-9, -50, 18, 80); x.fillStyle = '#ff8fab'; x.fillRect(-9, -64, 18, 14); x.fillStyle = '#c9c9c9'; x.fillRect(-9, -52, 18, 4);
+    x.fillStyle = '#f3d6b0'; x.beginPath(); x.moveTo(-9, 30); x.lineTo(9, 30); x.lineTo(0, 52); x.fill(); x.fillStyle = '#2b1d24'; x.beginPath(); x.moveTo(-3, 45); x.lineTo(3, 45); x.lineTo(0, 52); x.fill(); }); },
+  paleta(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.strokeStyle = '#fff'; x.lineWidth = 6; x.beginPath(); x.moveTo(0, 30); x.lineTo(0, 100); x.stroke(); D.circ(x, 0, 0, 34, col);
+    x.strokeStyle = 'rgba(255,255,255,.75)'; x.lineWidth = 6; x.beginPath(); for (let t = 0; t < 14; t += .2) x.lineTo(Math.cos(t) * t * 2.2, Math.sin(t) * t * 2.2); x.stroke(); }); },
+  cometa(x, cx, cy, s, rot, cols, a) { D._(x, cx, cy, s, rot, a, () => { [[0, -50, 30, 0, 0, 0], [30, 0, 0, 70, 0, 0], [0, 70, -30, 0, 0, 0], [-30, 0, 0, -50, 0, 0]].forEach((p, i) => { x.fillStyle = cols[i % cols.length]; x.beginPath(); x.moveTo(p[0], p[1]); x.lineTo(p[2], p[3]); x.lineTo(0, 0); x.fill(); });
+    x.strokeStyle = '#fff'; x.lineWidth = 2; x.beginPath(); x.moveTo(0, 70); x.bezierCurveTo(20, 100, -20, 120, 10, 150); x.stroke(); [100, 125].forEach((Y, i) => M.corazon(x, i ? 6 : -4, Y, 16, cols[i], 1)); }); },
+  bandera(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => { x.strokeStyle = '#d9b779'; x.lineWidth = 5; x.beginPath(); x.moveTo(-60, -40); x.lineTo(-60, 70); x.stroke();
+    const onda = (y0, h, col) => { x.fillStyle = col; x.beginPath(); x.moveTo(-58, y0); x.bezierCurveTo(-20, y0 - 10, 20, y0 + 10, 60, y0); x.lineTo(60, y0 + h); x.bezierCurveTo(20, y0 + h + 10, -20, y0 + h - 10, -58, y0 + h); x.fill(); };
+    onda(-40, 22, '#0073cf'); onda(-18, 22, '#ffffff'); onda(4, 22, '#0073cf'); [[0, -7], [-12, -12], [12, -12], [-12, -2], [12, -2]].forEach(([X, Y]) => M.estrella(x, X, Y, 4, '#0073cf', 1)); }); },
+  // ---- Fiestas
+  bolsa(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.strokeStyle = '#d9b779'; x.lineWidth = 5; x.beginPath(); x.arc(0, -26, 16, Math.PI, 0); x.stroke(); x.fillStyle = col; x.beginPath(); x.moveTo(-36, -26); x.lineTo(36, -26); x.lineTo(42, 44); x.lineTo(-42, 44); x.fill();
+    x.fillStyle = '#d9b779'; x.font = '800 26px Inter, Arial'; x.textAlign = 'center'; x.fillText('%', 0, 18); }); },
+  tarjeta(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => { const g = x.createLinearGradient(-50, -30, 50, 30); g.addColorStop(0, '#e5c063'); g.addColorStop(1, '#b8892f'); x.fillStyle = g; rr(x, -50, -32, 100, 64, 10); x.fill();
+    x.fillStyle = 'rgba(0,0,0,.6)'; x.fillRect(-50, -18, 100, 10); x.fillStyle = '#fff4d0'; rr(x, -38, 4, 18, 14, 3); x.fill(); }); },
+  diploma(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = '#fbf3e0'; x.fillRect(-56, -14, 112, 28); D.circ(x, -56, 0, 14, '#efe2c2'); D.circ(x, 56, 0, 14, '#efe2c2');
+    x.fillStyle = '#c0392b'; x.fillRect(-8, -16, 16, 32); x.beginPath(); x.moveTo(-6, 14); x.lineTo(-14, 40); x.lineTo(-2, 32); x.fill(); x.beginPath(); x.moveTo(6, 14); x.lineTo(14, 40); x.lineTo(2, 32); x.fill(); }); },
+  medalla(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = '#1d4ed8'; x.beginPath(); x.moveTo(-20, -60); x.lineTo(0, -10); x.lineTo(20, -60); x.lineTo(8, -60); x.lineTo(0, -40); x.lineTo(-8, -60); x.fill();
+    D.circ(x, 0, 12, 28, '#e2bd64'); D.circ(x, 0, 12, 20, '#f5d78e'); M.estrella(x, 0, 12, 12, '#c9962e', 1); }); },
+  copas(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => { [[-1, -.25], [1, .25]].forEach(([sg, r]) => { x.save(); x.translate(sg * 22, 0); x.rotate(r);
+      x.fillStyle = 'rgba(255,240,200,.85)'; x.beginPath(); x.moveTo(-16, -50); x.lineTo(16, -50); x.quadraticCurveTo(14, 0, 0, 6); x.quadraticCurveTo(-14, 0, -16, -50); x.fill();
+      x.fillStyle = '#e7c873'; x.beginPath(); x.moveTo(-13, -30); x.lineTo(13, -30); x.quadraticCurveTo(11, 0, 0, 4); x.quadraticCurveTo(-11, 0, -13, -30); x.fill();
+      x.strokeStyle = 'rgba(255,240,200,.9)'; x.lineWidth = 4; x.beginPath(); x.moveTo(0, 6); x.lineTo(0, 46); x.moveTo(-14, 48); x.lineTo(14, 48); x.stroke(); x.restore(); });
+    [[0, -66, 5], [-8, -80, 3], [8, -90, 4]].forEach(([X, Y, r]) => D.circ(x, X, Y, r, 'rgba(255,240,200,.85)')); M.estrella(x, 0, -60, 8, '#fff', 1, 4); }); },
+  reloj(x, cx, cy, s, a) { D._(x, cx, cy, s, 0, a, () => { D.circ(x, 0, 0, 46, '#e7c873'); D.circ(x, 0, 0, 38, '#fffaf0'); x.strokeStyle = '#141b33'; x.lineWidth = 5; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(0, 0); x.lineTo(0, -28); x.moveTo(0, 0); x.lineTo(-4, -20); x.stroke(); for (let i = 0; i < 12; i++) { const an = i * Math.PI / 6; D.circ(x, Math.cos(an) * 31, Math.sin(an) * 31, 2.5, '#141b33'); } x.fillStyle = '#e7c873'; x.fillRect(-8, -58, 16, 12); }); },
+  campana(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = col; x.beginPath(); x.moveTo(-36, 30); x.quadraticCurveTo(-30, -40, 0, -44); x.quadraticCurveTo(30, -40, 36, 30); x.closePath(); x.fill(); x.fillRect(-40, 26, 80, 8);
+    D.circ(x, 0, 40, 8, col); x.fillStyle = 'rgba(255,255,255,.4)'; x.fillRect(-20, -20, 6, 40); }); },
+  paloma(x, cx, cy, s, rot, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = '#ffffff'; x.beginPath(); x.ellipse(0, 0, 40, 18, -.1, 0, Math.PI * 2); x.fill(); D.circ(x, 34, -12, 12, '#fff');
+    x.beginPath(); x.moveTo(-6, -6); x.quadraticCurveTo(-30, -60, 16, -64); x.quadraticCurveTo(10, -30, 14, -8); x.fill(); x.beginPath(); x.moveTo(-36, 2); x.lineTo(-62, -12); x.lineTo(-58, 14); x.fill();
+    x.fillStyle = '#e8b06a'; x.beginPath(); x.moveTo(44, -12); x.lineTo(56, -8); x.lineTo(44, -6); x.fill(); D.circ(x, 36, -14, 2.5, '#2b1d24'); }); },
+  pastel(x, cx, cy, s, a) { D._(x, cx, cy, s, 0, a, () => { x.fillStyle = '#ffb3c6'; rr(x, -50, 0, 100, 44, 8); x.fill(); x.fillStyle = '#fff0f5'; rr(x, -38, -34, 76, 38, 8); x.fill();
+    x.fillStyle = '#ff6b9a'; x.beginPath(); x.moveTo(-50, 6); for (let i = 0; i <= 10; i++) x.quadraticCurveTo(-45 + i * 10, 20, -40 + i * 10, 6); x.lineTo(50, 0); x.lineTo(-50, 0); x.fill();
+    ['#ffd166', '#4cc9f0', '#06d6a0'].forEach((c, i) => { x.fillStyle = c; x.fillRect(-22 + i * 20, -58, 7, 26); x.fillStyle = '#ff9e00'; x.beginPath(); x.ellipse(-18.5 + i * 20, -66, 5, 9, 0, 0, Math.PI * 2); x.fill(); }); }); },
+  gorrito(x, cx, cy, s, rot, cols, a) { D._(x, cx, cy, s, rot, a, () => { x.save(); x.beginPath(); x.moveTo(-34, 40); x.lineTo(0, -50); x.lineTo(34, 40); x.closePath(); x.clip();
+    for (let i = 0; i < 8; i++) { x.fillStyle = cols[i % cols.length]; x.fillRect(-40, -50 + i * 14, 80, 14); } x.restore(); D.circ(x, 0, -52, 10, '#fff'); }); },
+  nota(x, cx, cy, s, rot, col, a) { D._(x, cx, cy, s, rot, a, () => { x.fillStyle = col; x.beginPath(); x.ellipse(-20, 30, 13, 10, -.4, 0, Math.PI * 2); x.ellipse(24, 22, 13, 10, -.4, 0, Math.PI * 2); x.fill(); x.fillRect(-9, -36, 6, 66); x.fillRect(35, -44, 6, 66); x.beginPath(); x.moveTo(-9, -36); x.lineTo(41, -44); x.lineTo(41, -30); x.lineTo(-9, -22); x.fill(); }); }
+};
+// Las posiciones de los dibujos: esquinas y orillas (no tapan el texto)
+const POS = { si: [110, 150], sd: [970, 150], ii: [120, 1210], id: [960, 1210], ms: [80, 520], md: [1000, 540], mi: [78, 860], mdd: [1002, 880], ts: [250, 80], tsd: [830, 80] };
+const pos = (k, H) => [POS[k][0], POS[k][1] * H / 1350];
+const ESCENAS = {
+  halloween: [
+    (x, W, H, P, r) => { M.luna(x, W - 170, 170, 92, '#f8f0d0', .95); D.bruja(x, W - 230, 190, 70, -.12, 1, '#160a20'); D.calabaza(x, ...pos('ii', H), 110, -.1, 1); D.calabaza(x, 205, H - 84, 70, .15, 1); D.calabaza(x, ...pos('id', H), 95, .08, 1); M.murcielago(x, 160, 140, 60, '#0b0612', .9); M.murcielago(x, 270, 230, 36, '#0b0612', .85); },
+    (x, W, H, P, r) => { D.telarana(x, 40, 40, 260, 0, 'rgba(255,255,255,.55)', 1); D.telarana(x, W - 40, 40, 260, Math.PI / 2, 'rgba(255,255,255,.55)', 1); D.arana(x, 230, 300, 60, 1); D.esqueleto(x, 110, H - 220, 120, -.08, 1); D.esqueleto(x, W - 110, H - 220, 120, .08, 1); D.dulce(x, 205, H - 84, 46, .3, '#ff9a3c', 1); D.dulce(x, W - 205, H - 84, 46, -.3, '#b388eb', 1); },
+    (x, W, H, P, r) => { D.fantasma(x, 120, 200, 100, -.15, .95); D.fantasma(x, W - 130, 230, 80, .15, .9); D.caldero(x, 120, H - 150, 100, 1); D.calabaza(x, W - 130, H - 140, 110, .05, 1); M.luna(x, W - 150, H * .62, 46, '#f8f0d0', .7); for (let i = 0; i < 18; i++) M.estrella(x, r() * W, r() * H, 3 + r() * 4, '#ffd9a8', .6, 4); }
+  ],
+  navidad: [
+    (x, W, H, P, r) => { D.arbol(x, 120, H - 190, 150, 1, P.ac); D.arbol(x, W - 120, H - 190, 150, 1, P.ac); D.regalo(x, 205, H - 84, 60, -.1, '#2f7d4f', '#f3d27a', 1); D.regalo(x, W - 205, H - 84, 60, .1, '#f3d27a', '#d62839', 1); for (let i = 0; i < 26; i++) M.copo(x, r() * W, r() * H * .4, 8 + r() * 14, '#ffffff', .55); },
+    (x, W, H, P, r) => { D.muneco(x, 130, H - 200, 140, 1); D.muneco(x, W - 130, H - 200, 120, 1); D.gorroSanta(x, 150, 150, 90, -.3, 1); D.baston(x, W - 140, 170, 90, .4, 1); D.baston(x, W - 230, 150, 60, -.3, 1); for (let i = 0; i < 30; i++) D.circ(x, r() * W, r() * H, 1.5 + r() * 3, 'rgba(255,255,255,.7)'); },
+    (x, W, H, P, r) => { [[110, 130, -.3], [W - 110, 130, .3], [100, H - 140, .2], [W - 100, H - 140, -.2]].forEach(([X, Y, R]) => D.acebo(x, X, Y, 110, R, 1)); D.regalo(x, 205, H - 84, 70, .1, '#d62839', '#f3d27a', 1); D.regalo(x, W - 205, H - 84, 54, -.1, '#ffffff', '#d62839', 1); M.estrella(x, W / 2 - 360, 330, 20, P.ac, .9); M.estrella(x, W / 2 + 360, 330, 20, P.ac, .9); }
+  ],
+  enamorados: [
+    (x, W, H, P, r) => { D.rosa(x, 120, 150, 110, -.2, '#e63950', 1); D.rosa(x, W - 120, H - 170, 120, .2, '#e63950', 1); D.rosa(x, W - 140, 160, 80, .3, '#ff6b81', 1); D.rosa(x, 130, H - 160, 90, -.3, '#ff6b81', 1); for (let i = 0; i < 12; i++) M.corazon(x, r() * W, r() * H, 20 + r() * 20, '#ffccd5', .45); },
+    (x, W, H, P, r) => { D.flechaCupido(x, 150, 180, 110, -.2, '#ff4d6d', 1); D.carta(x, W - 140, 170, 100, .15, '#ff4d6d', 1); D.carta(x, 140, H - 170, 90, -.15, '#ff8fa3', 1); D.flechaCupido(x, W - 150, H - 180, 90, .2, '#ff8fa3', 1); },
+    (x, W, H, P, r) => { D.labios(x, 140, 160, 110, -.2, '#ff3b5c', 1); D.labios(x, W - 150, H - 160, 100, .2, '#ff3b5c', 1); M.globo(x, W - 140, 170, 44, '#ff4d6d', .95); M.globo(x, W - 220, 230, 32, '#ffccd5', .95); M.globo(x, 140, H - 260, 40, '#ff8fa3', .95); for (let i = 0; i < 14; i++) M.corazon(x, r() * W, r() * H, 18 + r() * 18, '#ffffff', .35); }
+  ],
+  madre: [
+    (x, W, H, P, r) => { [[110, 160, -.3], [200, 110, .2], [W - 110, 160, .3], [W - 200, 110, -.2]].forEach(([X, Y, R], i) => D.tulipan(x, X, Y, 80, R, ['#ff6b9a', '#ffd6e3', '#ff8fab', '#ffffff'][i], 1)); [[100, H - 180], [W - 100, H - 180]].forEach(([X, Y], i) => D.tulipan(x, X, Y, 100, i ? .15 : -.15, '#ff6b9a', 1)); },
+    (x, W, H, P, r) => { D.mariposa(x, 140, 170, 90, -.3, '#ffb3c6', 1); D.mariposa(x, W - 150, 210, 70, .3, '#cdb4ff', 1); D.mariposa(x, 160, H - 200, 70, .2, '#ffd6a5', 1); D.rosa(x, W - 120, H - 160, 100, .2, '#ff6b9a', 1); D.rosa(x, 120, H - 110, 70, -.2, '#ffd6e3', 1); },
+    (x, W, H, P, r) => { D.regalo(x, 140, 160, 80, -.15, '#ff8fab', '#ffffff', 1); D.rosa(x, W - 130, 160, 90, .2, '#ff6b9a', 1); D.taza(x, 130, H - 170, 90, -.1, '#ff8fab', 1); M.corazon(x, W - 130, H - 170, 110, '#ffd6e3', .95); M.corazon(x, W - 200, H - 250, 50, '#ff8fab', .9); }
+  ],
+  mujer: [
+    (x, W, H, P, r) => { D.venus(x, 130, 160, 100, '#e6d2ff', .9); D.venus(x, W - 130, H - 180, 110, '#e6d2ff', .9); D.mariposa(x, W - 140, 170, 80, .3, '#c9a8f2', 1); D.mariposa(x, 150, H - 190, 70, -.2, '#ffb3c6', 1); },
+    (x, W, H, P, r) => { D.labial(x, 130, 160, 90, -.3, '#d64b8a', 1); D.esmalte(x, W - 130, 170, 90, .2, '#a77be8', 1); D.esmalte(x, 140, H - 170, 80, -.2, '#ff6b9a', 1); D.labial(x, W - 140, H - 170, 90, .3, '#a77be8', 1); },
+    (x, W, H, P, r) => { [[110, 150], [W - 110, 150], [110, H - 160], [W - 110, H - 160]].forEach(([X, Y], i) => D.tulipan(x, X, Y, 90, i % 2 ? .2 : -.2, ['#c9a8f2', '#ffb3c6'][i % 2], 1)); for (let i = 0; i < 10; i++) M.estrella(x, r() * W, r() * H, 4 + r() * 6, '#fff', .5, 4); }
+  ],
+  mujerhn: [
+    (x, W, H, P, r) => { D.venus(x, 130, 160, 100, '#f3c6e0', .9); D.bandera(x, W - 150, 170, 90, .1, 1); D.mariposa(x, 150, H - 190, 80, -.2, '#f7b2d6', 1); D.rosa(x, W - 130, H - 160, 100, .2, '#d77fc0', 1); },
+    (x, W, H, P, r) => { D.labial(x, 130, 160, 90, -.3, '#d77fc0', 1); D.esmalte(x, W - 130, 170, 90, .2, '#f7b2d6', 1); D.tulipan(x, 120, H - 180, 100, -.15, '#f7b2d6', 1); D.tulipan(x, W - 120, H - 180, 100, .15, '#d77fc0', 1); },
+    (x, W, H, P, r) => { [[120, 160], [W - 120, 160], [120, H - 160], [W - 120, H - 160]].forEach(([X, Y], i) => D.mariposa(x, X, Y, 90, i % 2 ? .3 : -.3, ['#f7b2d6', '#cdb4ff', '#ffd6e3', '#d77fc0'][i], 1)); }
+  ],
+  padre: [
+    (x, W, H, P, r) => { D.corbata(x, 130, 170, 110, -.2, '#d9b779', 1); D.bigote(x, W - 150, 160, 110, .1, '#d9b779', 1); D.bigote(x, 150, H - 170, 90, -.1, '#d9b779', .9); D.corbata(x, W - 130, H - 180, 110, .2, '#d9b779', 1); },
+    (x, W, H, P, r) => { D.postebarbero(x, 110, 200, 120, 1); D.postebarbero(x, W - 110, 200, 120, 1); D.tijeras(x, 150, H - 170, 100, -.4, '#d9b779', 1); D.peine(x, W - 160, H - 170, 100, .3, '#d9b779', 1); },
+    (x, W, H, P, r) => { D.taza(x, 140, 170, 90, -.1, '#d9b779', 1); D.secador(x, W - 150, 170, 80, .2, '#d9b779', 1); D.bigote(x, 150, H - 170, 100, 0, '#d9b779', 1); D.regalo(x, W - 140, H - 160, 80, .1, '#25508f', '#d9b779', 1); }
+  ],
+  verano: [
+    (x, W, H, P, r) => { M.sol(x, W - 150, 170, 60, '#ffd166', .95); D.palmera(x, 120, H - 230, 150, 1); D.palmera(x, W - 110, H - 230, 130, 1); M.olas(x, W, H - 128, 'rgba(255,255,255,.4)', 1); },
+    (x, W, H, P, r) => { D.gafas(x, 150, 160, 100, -.2, '#1b1b24', 1); D.helado(x, W - 140, 180, 100, .2, 1); D.concha(x, 140, H - 160, 90, -.2, '#ffd6a5', 1); D.concha(x, W - 140, H - 150, 80, .3, '#ffb3c6', 1); },
+    (x, W, H, P, r) => { M.sol(x, 150, 170, 54, '#ffd166', .95); D.helado(x, W - 140, 180, 90, .2, 1); D.palmera(x, W - 120, H - 230, 130, 1); D.gafas(x, 160, H - 170, 90, .1, '#ff4d6d', 1); M.olas(x, W, H - 128, 'rgba(255,255,255,.4)', 1); }
+  ],
+  secretaria: [
+    (x, W, H, P, r) => { D.taza(x, 140, 170, 100, -.1, '#f6c3c9', 1); D.lapiz(x, W - 140, 180, 90, .5, 1); D.tulipan(x, 120, H - 180, 100, -.15, '#f6c3c9', 1); D.tulipan(x, W - 120, H - 180, 100, .15, '#ffffff', 1); },
+    (x, W, H, P, r) => { D.rosa(x, 120, 150, 100, -.2, '#f29fae', 1); D.rosa(x, W - 120, H - 160, 100, .2, '#f29fae', 1); D.mariposa(x, W - 140, 170, 70, .3, '#ffffff', 1); D.mariposa(x, 150, H - 190, 70, -.2, '#f6c3c9', 1); },
+    (x, W, H, P, r) => { D.labial(x, 130, 160, 90, -.3, '#f29fae', 1); D.esmalte(x, W - 130, 170, 90, .2, '#f6c3c9', 1); D.taza(x, 140, H - 170, 90, -.1, '#ffffff', 1); D.regalo(x, W - 140, H - 160, 80, .1, '#f29fae', '#ffffff', 1); }
+  ],
+  juniana: [
+    (x, W, H, P, r) => { M.banderines(x, 40, 70, 400, 50, 60, P.c, .95); M.banderines(x, W - 400, 50, W - 40, 70, 60, P.c, .95); M.fuego(x, 140, H - 220, 90, '#ffd60a', .9); M.fuego(x, W - 140, H - 230, 110, '#4cc9f0', .9); M.confeti(x, W, H, 50, P.c, r, .8); },
+    (x, W, H, P, r) => { [[110, 230, 52, 0], [210, 170, 40, 1], [W - 110, 230, 52, 2], [W - 210, 170, 40, 3]].forEach(([X, Y, R, i]) => M.globo(x, X, Y, R, P.c[i % P.c.length], .95)); D.nota(x, 140, H - 180, 90, -.2, '#ffd60a', 1); D.nota(x, W - 140, H - 180, 90, .2, '#80ffdb', 1); },
+    (x, W, H, P, r) => { D.gorrito(x, 140, 170, 100, -.3, ['#ffd60a', '#4cc9f0', '#ff9e00'], 1); D.gorrito(x, W - 140, 170, 100, .3, ['#80ffdb', '#ff9e00', '#ffd60a'], 1); D.dulce(x, 140, H - 170, 70, .3, '#ffd60a', 1); D.paleta(x, W - 140, H - 220, 70, .2, '#4cc9f0', 1); M.confeti(x, W, H, 60, P.c, r, .85); }
+  ],
+  ninos: [
+    (x, W, H, P, r) => { D.paleta(x, 130, 160, 90, -.3, '#ff595e', 1); D.paleta(x, W - 130, 170, 80, .3, '#8ac926', 1); D.dulce(x, 150, H - 160, 70, .3, '#ffca3a', 1); D.dulce(x, W - 150, H - 160, 70, -.3, '#ff8fd8', 1); M.confeti(x, W, H, 50, P.c, r, .8); },
+    (x, W, H, P, r) => { D.cometa(x, 140, 180, 100, -.3, ['#ff595e', '#ffca3a', '#8ac926', '#ff8fd8'], 1); D.cometa(x, W - 140, 200, 80, .3, ['#4cc9f0', '#ffca3a', '#ff595e', '#8ac926'], 1); M.estrella(x, 150, H - 170, 50, '#ffca3a', .95); M.estrella(x, W - 150, H - 180, 40, '#ff8fd8', .95); },
+    (x, W, H, P, r) => { D.pastel(x, 140, H - 160, 120, 1); D.gorrito(x, 140, 170, 100, -.3, ['#ff595e', '#ffca3a', '#8ac926'], 1); M.globo(x, W - 130, 220, 50, '#ff595e', .95); M.globo(x, W - 220, 170, 38, '#ffca3a', .95); D.regalo(x, W - 140, H - 160, 80, .1, '#8ac926', '#ff595e', 1); }
+  ],
+  patrias: [
+    (x, W, H, P, r) => { D.bandera(x, 150, 170, 110, -.1, 1); D.bandera(x, W - 150, H - 190, 110, .1, 1); for (let i = 0; i < 16; i++) M.estrella(x, r() * W, r() * H, 6 + r() * 8, '#ffffff', .55); },
+    (x, W, H, P, r) => { M.fuego(x, 160, 200, 100, '#ffffff', .9); M.fuego(x, W - 160, 210, 110, '#8fd3ff', .9); M.fuego(x, 150, H - 220, 80, '#8fd3ff', .9); M.fuego(x, W - 150, H - 230, 90, '#ffffff', .9); },
+    (x, W, H, P, r) => { [[110, 230, 52, '#ffffff'], [210, 170, 40, '#0073cf'], [W - 110, 230, 52, '#0073cf'], [W - 210, 170, 40, '#ffffff']].forEach(([X, Y, R, c]) => M.globo(x, X, Y, R, c, .95)); D.bandera(x, 150, H - 190, 90, -.1, 1); D.bandera(x, W - 150, H - 190, 90, .1, 1); }
+  ],
+  amarillas: [
+    (x, W, H, P, r) => { [[110, 150], [W - 110, 150], [110, H - 160], [W - 110, H - 160]].forEach(([X, Y], i) => D.tulipan(x, X, Y, 90, i % 2 ? .2 : -.2, '#ffd23f', 1)); D.mariposa(x, 250, 120, 50, .3, '#ffb703', 1); D.mariposa(x, W - 205, H - 84, 50, -.3, '#ffb703', 1); },
+    (x, W, H, P, r) => { [[110, 150], [W - 110, 150], [110, H - 160], [W - 110, H - 160]].forEach(([X, Y], i) => { M.flor(x, X, Y, 80, 12, '#ffffff', '#ffd23f', i, .95); M.flor(x, X + (i % 2 ? -70 : 70), Y + 40, 46, 10, '#ffffff', '#ffb703', i, .95); }); },
+    (x, W, H, P, r) => { D.regalo(x, 140, 160, 80, -.15, '#ffd23f', '#6b3f00', 1); D.rosa(x, W - 130, 160, 90, .2, '#ffd23f', 1); D.rosa(x, 130, H - 160, 100, -.2, '#ffb703', 1); D.mariposa(x, W - 140, H - 170, 80, .2, '#ffd23f', 1); }
+  ],
+  blackfriday: [
+    (x, W, H, P, r) => { D.bolsa(x, 140, 170, 100, -.15, '#d62828', 1); D.bolsa(x, W - 140, 180, 90, .15, '#1b1b1b', 1); D.bolsa(x, 150, H - 170, 80, .1, '#1b1b1b', 1); D.bolsa(x, W - 150, H - 170, 100, -.1, '#d62828', 1); },
+    (x, W, H, P, r) => { D.tarjeta(x, 150, 170, 110, -.3, 1); D.tarjeta(x, W - 150, H - 180, 110, .3, 1); M.etiqueta(x, W - 160, 200, 70, .3, '#d62828', '%', .95); M.etiqueta(x, 140, H - 200, 64, .25, '#e5c063', '%', .95); },
+    (x, W, H, P, r) => { for (let i = 0; i < 40; i++) brillo(x, r() * W, r() * H, 5 + r() * 10, .7); D.regalo(x, 140, 170, 80, -.1, '#1b1b1b', '#e5c063', 1); D.regalo(x, W - 140, H - 170, 80, .1, '#d62828', '#e5c063', 1); D.bolsa(x, W - 140, 170, 80, .1, '#e5c063', 1); D.bolsa(x, 140, H - 170, 80, -.1, '#d62828', 1); }
+  ],
+  graduacion: [
+    (x, W, H, P, r) => { D.diploma(x, 150, 170, 110, -.3, 1); D.diploma(x, W - 150, H - 180, 110, .3, 1); D.medalla(x, W - 140, 180, 100, .1, 1); D.medalla(x, 140, H - 170, 90, -.1, 1); },
+    (x, W, H, P, r) => { for (let i = 0; i < 6; i++) { x.save(); x.translate(i % 2 ? W - 150 : 150, 160 + Math.floor(i / 2) * ((H - 320) / 2)); x.rotate((r() - .5) * .6); M.birrete(x, 0, 0, 50 + r() * 20, '#050505', P.ac, .95); x.restore(); } M.confeti(x, W, H, 60, P.c, r, .8); },
+    (x, W, H, P, r) => { D.copas(x, 150, 180, 100, -.1, 1); D.copas(x, W - 150, H - 190, 100, .1, 1); M.fuego(x, W - 150, 190, 90, P.ac, .9); M.fuego(x, 150, H - 210, 80, '#ffffff', .8); }
+  ],
+  anionuevo: [
+    (x, W, H, P, r) => { D.copas(x, 150, 180, 110, -.1, 1); D.copas(x, W - 150, H - 190, 110, .1, 1); M.confeti(x, W, H, 70, [P.ac, '#ffffff', '#c0c8e8'], r, .8); },
+    (x, W, H, P, r) => { D.reloj(x, 150, 180, 110, 1); M.fuego(x, W - 160, 200, 120, P.ac, .9); M.fuego(x, 150, H - 220, 90, '#c0c8e8', .9); D.copas(x, W - 150, H - 190, 100, .1, 1); },
+    (x, W, H, P, r) => { [[110, 230, 52, P.ac], [210, 170, 40, '#c0c8e8'], [W - 110, 230, 52, '#c0c8e8'], [W - 210, 170, 40, P.ac]].forEach(([X, Y, R, c]) => M.globo(x, X, Y, R, c, .95)); D.gorrito(x, 150, H - 180, 100, -.2, [P.ac, '#141b33'], 1); D.gorrito(x, W - 150, H - 180, 100, .2, ['#c0c8e8', '#141b33'], 1); }
+  ],
+  bodas: [
+    (x, W, H, P, r) => { D.campana(x, 140, 170, 90, -.25, '#d9c39a', 1); D.campana(x, 220, 180, 80, .2, '#d9c39a', 1); D.paloma(x, W - 150, H - 200, 90, -.1, 1); D.paloma(x, W - 160, 180, 80, .1, 1); },
+    (x, W, H, P, r) => { [[110, 150], [W - 110, 150], [110, H - 160], [W - 110, H - 160]].forEach(([X, Y], i) => D.rosa(x, X, Y, 90, i % 2 ? .2 : -.2, ['#ffffff', '#f3d6c8'][i % 2], 1)); },
+    (x, W, H, P, r) => { D.copas(x, 150, 180, 100, -.1, 1); M.anillos(x, W - 150, 180, 40, P.ac, .95); M.corazon(x, 150, H - 180, 100, '#f3d6c8', .9); D.paloma(x, W - 150, H - 200, 90, -.1, 1); }
+  ],
+  cumple: [
+    (x, W, H, P, r) => { D.pastel(x, 140, H - 160, 130, 1); D.pastel(x, W - 140, H - 160, 110, 1); D.gorrito(x, 140, 170, 100, -.3, ['#ffd166', '#ef476f', '#06d6a0'], 1); D.gorrito(x, W - 140, 170, 100, .3, ['#118ab2', '#ffd166', '#ef476f'], 1); M.confeti(x, W, H, 40, P.c, r, .8); },
+    (x, W, H, P, r) => { [[150, 170, -.2, '#ef476f', '#ffd166'], [W - 150, 170, .15, '#06d6a0', '#ffffff'], [140, H - 160, .1, '#118ab2', '#ffd166'], [W - 140, H - 160, -.1, '#ffd166', '#ef476f']].forEach(([X, Y, R, c, ci]) => D.regalo(x, X, Y, 90, R, c, ci, 1)); M.confeti(x, W, H, 50, P.c, r, .8); },
+    (x, W, H, P, r) => { D.nota(x, 140, 180, 90, -.2, '#ffd166', 1); D.nota(x, W - 140, H - 190, 90, .2, '#06d6a0', 1); M.globo(x, W - 130, 220, 50, '#ef476f', .95); M.globo(x, 130, H - 270, 46, '#118ab2', .95); D.pastel(x, W - 150, H - 140, 90, 1); }
+  ],
+  '': [
+    (x, W, H, P, r) => { D.esmalte(x, 130, 170, 90, -.2, '#e07a9b', 1); D.labial(x, W - 130, 170, 90, .3, '#c9798f', 1); D.esmalte(x, 140, H - 170, 80, .2, '#b07cc6', 1); D.labial(x, W - 140, H - 170, 80, -.2, '#e07a9b', 1); },
+    (x, W, H, P, r) => { D.tijeras(x, 150, 170, 100, -.4, P.ac, 1); D.peine(x, W - 160, 170, 100, .3, P.ac, 1); D.secador(x, 150, H - 170, 90, -.2, P.ac, 1); D.tijeras(x, W - 150, H - 170, 90, .4, P.ac, 1); },
+    (x, W, H, P, r) => { [[120, 150], [W - 120, 150], [120, H - 160], [W - 120, H - 160]].forEach(([X, Y], i) => D.rosa(x, X, Y, 90, i % 2 ? .2 : -.2, ['#e07a9b', '#ffd6e3'][i % 2], 1)); for (let i = 0; i < 14; i++) brillo(x, r() * W, r() * H, 5 + r() * 8, .6); }
+  ]
+};
+
 const ESQ = [[90, 120, 1], [200, 70, .62], [990, 110, 1.05], [880, 62, .58], [64, 470, .55], [1016, 500, .6], [60, 800, .5], [1020, 840, .55], [96, 1220, 1.05], [215, 1290, .62], [985, 1230, 1.1], [870, 1292, .6]];
 function decoPromo(x, W, H, P, rnd) {
+  const BL = P.blanco || '#ffffff';
+  const esc = P.dibujo && ESCENAS[P.tid || ''] && ESCENAS[P.tid || ''][P.dibujo - 1];
+  if (esc) { esc(x, W, H, P, rnd); return; }
   const c = P.c, pos = ESQ.map(([px, py, k]) => [px, py * H / 1350, k]);
   switch (P.deco) {
     case 'flores': case 'madre':
@@ -4371,7 +4673,7 @@ function decoPromo(x, W, H, P, rnd) {
       M.confeti(x, W, H, 55, c, rnd, .8); break;
     case 'patrias':
       x.save(); x.fillStyle = 'rgba(255,255,255,.12)'; x.fillRect(0, 0, W, 70); x.fillRect(0, H - 70, W, 70); x.restore();
-      [[150, 150], [930, 150], [150, H - 160], [930, H - 160]].forEach(([cx, cy]) => { M.estrella(x, cx, cy, 30, '#ffffff', .9); [[-60, -40], [60, -40], [-60, 40], [60, 40]].forEach(([dx, dy]) => M.estrella(x, cx + dx, cy + dy, 16, '#ffffff', .75)); }); break;
+      [[150, 150], [930, 150], [150, H - 160], [930, H - 160]].forEach(([cx, cy]) => { M.estrella(x, cx, cy, 30, BL, .9); [[-60, -40], [60, -40], [-60, 40], [60, 40]].forEach(([dx, dy]) => M.estrella(x, cx + dx, cy + dy, 16, BL, .75)); }); break;
     case 'girasoles':
       pos.forEach(([px, py, k], i) => { M.hoja(x, px - 40 * k, py + 40 * k, 80 * k, -.9, '#7aa83a', .85); M.flor(x, px, py, 78 * k, 14, c[i % 2], '#6b3f00', i * .3, .96); M.flor(x, px, py, 30 * k, 10, '#8a5300', '#4a2a00', 0, .9); }); break;
     case 'halloween':
@@ -4386,25 +4688,37 @@ function decoPromo(x, W, H, P, rnd) {
       M.confeti(x, W, H, 70, c, rnd, .85); break;
     case 'navidad':
       [[110, 230, 34, 0], [200, 160, 26, 1], [300, 110, 20, 0], [970, 240, 36, 1], [880, 165, 26, 0], [780, 110, 20, 1]].forEach(([px, py, r, i]) => M.esfera(x, px, 0, py, r, i ? c[1] : c[0], P.ac, .97));
-      pos.slice(4).forEach(([px, py, k]) => M.copo(x, px, py, 34 * k, '#ffffff', .75));
+      pos.slice(4).forEach(([px, py, k]) => M.copo(x, px, py, 34 * k, BL, .75));
       for (let i = 0; i < 30; i++) { x.save(); x.globalAlpha = .6; x.fillStyle = '#fff'; x.beginPath(); x.arc(rnd() * W, rnd() * H, 1.5 + rnd() * 2.5, 0, Math.PI * 2); x.fill(); x.restore(); } break;
     case 'fuegos':
       [[170, 200, 90, 0], [920, 170, 110, 1], [110, H - 260, 70, 2], [960, H - 280, 90, 0], [300, 110, 50, 1]].forEach(([px, py, r, i]) => M.fuego(x, px, py, r, c[i % c.length], .9));
-      M.confeti(x, W, H, 40, [P.ac, '#ffffff'], rnd, .7); break;
+      M.confeti(x, W, H, 40, [P.ac, BL], rnd, .7); break;
     case 'bodas':
       M.anillos(x, 150, 180, 46, P.ac, .9); M.anillos(x, W - 160, H - 210, 40, P.ac, .85);
-      pos.forEach(([px, py, k], i) => { if (i === 0 || i === 10) return; M.hoja(x, px - 30 * k, py + 24 * k, 60 * k, -.8, hexA('#9caf88', .7), .9); M.flor(x, px, py, 52 * k, 5, '#ffffff', '#e8d5b5', i, .95); });
+      pos.forEach(([px, py, k], i) => { if (i === 0 || i === 10) return; M.hoja(x, px - 30 * k, py + 24 * k, 60 * k, -.8, hexA('#9caf88', .7), .9); M.flor(x, px, py, 52 * k, 5, BL, '#e8d5b5', i, .95); });
       for (let i = 0; i < 16; i++) brillo(x, rnd() * W, rnd() * H, 5 + rnd() * 7, .5); break;
   }
 }
 function fondoPromo(x, W, H, P, semilla) {
+  if (P.modo === 'moderno') {
+    x.fillStyle = '#fbf7f4'; x.fillRect(0, 0, W, H);
+    const bh = Math.round(H * .5);
+    x.save(); x.beginPath(); x.moveTo(0, 0); x.lineTo(W, 0); x.lineTo(W, bh - 70); x.quadraticCurveTo(W / 2, bh + 80, 0, bh - 70); x.closePath(); x.clip();
+    const gb = x.createLinearGradient(0, 0, W, bh); gb.addColorStop(0, P.bg[0]); gb.addColorStop(.6, P.bg[1]); gb.addColorStop(1, P.bg[2]);
+    x.fillStyle = gb; x.fillRect(0, 0, W, bh + 90);
+    const rg = x.createRadialGradient(W - 120, 140, 0, W - 120, 140, 480); rg.addColorStop(0, hexA(P.ac, .25)); rg.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = rg; x.fillRect(0, 0, W, bh + 90);
+    if (P.deco || P.dibujo) decoPromo(x, W, H, P, azar(semilla)); else [[150, 120, 14, .8], [930, 300, 10, .7], [990, 210, 6, .6], [110, 430, 8, .5]].forEach(b => brillo(x, ...b));
+    x.restore();
+    x.strokeStyle = P.acInf; x.globalAlpha = .55; x.lineWidth = 2; rr(x, 36, 36, W - 72, H - 72, 28); x.stroke(); x.globalAlpha = 1;
+    return;
+  }
   const g = x.createLinearGradient(0, 0, W, H);
   g.addColorStop(0, P.bg[0]); g.addColorStop(.55, P.bg[1]); g.addColorStop(1, P.bg[2]);
   x.fillStyle = g; x.fillRect(0, 0, W, H);
   [[W - 120, 140, 520, hexA(P.ac, .25)], [80, H - 80, 460, hexA(P.bg[2], .45)]].forEach(([cx, cy, r, col]) => {
     const rg = x.createRadialGradient(cx, cy, 0, cx, cy, r); rg.addColorStop(0, col); rg.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = rg; x.fillRect(0, 0, W, H);
   });
-  if (P.deco) decoPromo(x, W, H, P, azar(semilla));
+  if (P.deco || P.dibujo) decoPromo(x, W, H, P, azar(semilla));
   else [[150, 120, 14, .8], [930, 300, 10, .7], [990, 210, 6, .6], [110, 430, 8, .5], [960, H - 200, 12, .7], [140, H - 110, 7, .6]].forEach(b => brillo(x, ...b));
   x.strokeStyle = P.ac; x.globalAlpha = .9; x.lineWidth = 2; rr(x, 36, 36, W - 72, H - 72, 28); x.stroke();
   x.globalAlpha = .4; x.lineWidth = 1; rr(x, 50, 50, W - 100, H - 100, 22); x.stroke(); x.globalAlpha = 1;
@@ -4420,12 +4734,12 @@ async function dibujarPromo(p, altoFijo) {
   const media = logoMarca(x, W / 2, 158);
   x.textAlign = 'center'; x.textBaseline = 'alphabetic';
   let y = 158 + media + 62;
-  x.fillStyle = P.tinta; x.font = `700 40px ${SERIF}`;
+  x.fillStyle = P.tintaSup || P.tinta; x.font = `700 40px ${SERIF}`;
   x.fillText(lineas(x, cfg.nombre || 'Salón de Belleza', 820)[0], W / 2, y);
   y += 54; x.fillStyle = P.ac; x.font = `700 22px ${SANS}`; espaciado(x, 7);
   x.fillText(P.rot, W / 2, y); espaciado(x, 0);
   // Título
-  x.fillStyle = P.tinta; x.font = `italic 700 76px ${SERIF}`;
+  x.fillStyle = P.tintaSup || P.tinta; x.font = `italic 700 76px ${SERIF}`;
   let tl = lineas(x, p.titulo, 860);
   if (tl.length > 2) { x.font = `italic 700 60px ${SERIF}`; tl = lineas(x, p.titulo, 880).slice(0, 2); }
   const lh = tl.length > 1 ? 74 : 0;
@@ -4435,7 +4749,8 @@ async function dibujarPromo(p, altoFijo) {
   x.save(); x.shadowColor = 'rgba(0,0,0,.38)'; x.shadowBlur = 50; x.shadowOffsetY = 18;
   const gm = x.createLinearGradient(W / 2 - R, cy - R, W / 2 + R, cy + R); gm.addColorStop(0, P.med[0]); gm.addColorStop(.55, P.med[1]); gm.addColorStop(1, P.med[1]);
   x.fillStyle = gm; x.beginPath(); x.arc(W / 2, cy, R, 0, Math.PI * 2); x.fill(); x.restore();
-  x.strokeStyle = 'rgba(255,255,255,.8)'; x.lineWidth = 3; x.beginPath(); x.arc(W / 2, cy, R - 16, 0, Math.PI * 2); x.stroke();
+  x.strokeStyle = P.medAro || 'rgba(255,255,255,.8)'; x.lineWidth = P.medAro ? 4 : 3; x.beginPath(); x.arc(W / 2, cy, R - 16, 0, Math.PI * 2); x.stroke();
+  if (P.medAro) { x.strokeStyle = hexA(P.medAro, .5); x.lineWidth = 2; x.beginPath(); x.arc(W / 2, cy, R + 10, 0, Math.PI * 2); x.stroke(); }
   x.strokeStyle = hexA(P.mt, .35); x.lineWidth = 1.5; x.setLineDash([4, 8]); x.beginPath(); x.arc(W / 2, cy, R - 30, 0, Math.PI * 2); x.stroke(); x.setLineDash([]);
   let fs = 128; x.font = `700 ${fs}px ${SERIF}`;
   while (x.measureText(o.g).width > 2 * R - 90 && fs > 54) { fs -= 6; x.font = `700 ${fs}px ${SERIF}`; }
@@ -4451,15 +4766,15 @@ async function dibujarPromo(p, altoFijo) {
   // Vigencia
   const vt = vigenciaPromo(p); x.font = `600 28px ${SANS}`;
   const vw = x.measureText(vt).width + 70, vy = Math.max(y + 20, H - 330);
-  x.save(); x.fillStyle = hexA(P.bg[0], .35); rr(x, W / 2 - vw / 2, vy, vw, 64, 32); x.fill(); x.restore();
-  x.strokeStyle = P.ac; x.lineWidth = 2; rr(x, W / 2 - vw / 2, vy, vw, 64, 32); x.stroke();
-  x.fillStyle = P.tinta === '#ffffff' ? P.ac : P.tinta; x.fillText(vt, W / 2, vy + 42);
+  x.save(); x.fillStyle = P.pill || hexA(P.bg[0], .35); rr(x, W / 2 - vw / 2, vy, vw, 64, 32); x.fill(); x.restore();
+  x.strokeStyle = P.acInf || P.ac; x.lineWidth = 2; rr(x, W / 2 - vw / 2, vy, vw, 64, 32); x.stroke();
+  x.fillStyle = P.acInf || (P.tinta === '#ffffff' ? P.ac : P.tinta); x.fillText(vt, W / 2, vy + 42);
   // Pie
   let fy = vy + 128;
   x.fillStyle = P.tinta; x.font = `italic 600 40px ${SERIF}`; x.fillText('¡Reserva tu cita!', W / 2, fy);
   fy += 50;
   const cont = [cfg.telefono ? 'WhatsApp ' + cfg.telefono : '', cfg.direccion ? lineas(x, cfg.direccion, 480)[0] : ''].filter(Boolean).join('  ·  ');
-  if (cont) { x.fillStyle = P.tinta2; x.font = `400 26px ${SANS}`; x.fillText(lineas(x, cont, 800)[0], W / 2, fy); }
+  if (cont) { x.fillStyle = P.tinta2; x.font = `400 ${P.dibujo ? 23 : 26}px ${SANS}`; lineas(x, cont, P.dibujo ? 560 : 800).slice(0, P.dibujo ? 2 : 1).forEach((l, i) => x.fillText(l, W / 2, fy + i * 30)); }
   if (p.condiciones) { x.fillStyle = P.tinta2; x.globalAlpha = .75; x.font = `400 20px ${SANS}`; x.fillText(lineas(x, p.condiciones, 820)[0], W / 2, H - 74); x.globalAlpha = 1; }
   // Si el contenido no cupo, se vuelve a dibujar más alta para que nada se encime
   const necesario = fy + (p.condiciones ? 130 : 100);
